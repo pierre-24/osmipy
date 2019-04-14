@@ -1,0 +1,73 @@
+# DRAFT!!!
+
+# token definitions:
+DIGIT := '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+LPAR := '(' ;
+RPAR := ')' ;
+LSPAR := '[' ;
+RSPAR := ']' ;
+PLUS := '+' ;
+MINUS := '-' ;
+DOT := '.' ;
+COMMA := ',' ;
+SEMI := ';' ;
+AMP := '&' ;
+WILDCARD := '*' ;
+PERCENT := '%' ;
+AT = '@' ;
+COLON := ':' ;
+EXCL = '!' ;
+QUESTION_MARK = '?' ;
+TILDE := '~' ;
+EOF := ' ' | '\t' | '\n' | '\r' | '\0' ;
+
+# basic types
+elements := 'H' | 'He' | ... ;
+aromatic_element := 'b' | 'c' | 'n' | 'o' | 'p' | 's' | 'se' | 'as' ;
+aliphatic_element := 'B' | 'C' | 'N' | 'O' | 'S' | 'P' | 'F' | 'Cl' | 'Br' | 'I'
+organic_subset := aliphatic_element | aromatic_element ;
+atom_wildcard := 'a' | 'A' ;
+atom_selector := (('D' | 'v' | 'X') DIGIT) | (( 'x' | 'R' | 'r') DIGIT?) ;
+atomic_number := '#' DIGIT DIGIT? ;
+
+symbol := atom_wildcard | element | aromatic_element | WILDCARD ;
+
+# bonds
+bond := EXCL? ('=' | '#' | '$' | '/' QUESTION_MARK?  | '\' QUESTION_MARK? | MINUS | COLON | TILDE | AT);
+
+and2_expr_bonds := bond (AMP and2_expr_bonds)? ;
+or_expr_bonds := and2_expr_bonds (COMMA or_expr_bonds)? ;
+and_expr_bonds := or_expr_bonds (SEMI and_expr_bonds)? ;
+
+# atomic properties
+isotope := DIGIT* ;
+chirality := AT AT? ;
+hcount := ('H' | 'h') DIGIT? ;
+charge := (MINUS (DIGIT? DIGIT)?) | (PLUS (DIGIT? DIGIT)?) ;
+class := COLON DIGIT DIGIT? DIGIT? DIGIT? ;
+
+recursive_smarts := '$' LPAR chain RPAR ;
+
+atomic_property := isotope | symbol | atom_selector | atomic_number | chirality | hcount | charge | class ;
+
+property := EXCL? (recursive_smarts | atomic_property)
+
+and2_expr_properties := property (AMP? and2_expr_properties)? ;
+or_expr_properties := and2_expr_properties (COMMA or_expr_properties)? ;
+and_expr_properties := or_expr_properties (SEMI and_expr_properties)? ;
+
+bracket_atom := LSPAR and_expr_properties RSPAR ;
+
+atom := bracket_atom | organic_subset | atom_wildcard | WILDCARD ;
+
+ring_id := DIGIT | PERCENT DIGIT DIGIT ;
+ring_bond := bond? ring_id ;
+
+branch := LPAR (bond | DOT)? chain RPAR ;
+
+branched_atom := atom ring_bond* branch* ;
+
+chain := branched_atom ((and_expr_bonds | DOT)? chain)? ;
+
+# Parser.smarts()
+smarts:= chain? EOF ;

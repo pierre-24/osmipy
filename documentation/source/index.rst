@@ -6,10 +6,11 @@ A simple python library to interpret SMILES (`Simplified Molecular InputLine Ent
 By Pierre Beaujean
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 2
+    :caption: Contents:
 
-   about-smiles
-   api
+    about-smiles
+    smarts
+    api
 
 
