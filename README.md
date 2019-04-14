@@ -1,5 +1,5 @@
-# osmipy
+# osmipy (Open SMILES Python)
 
 A simple python library to interpret SMILES ([Simplified Molecular InputLine Entry System](https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system)).
 
-By Pierre Beaujean.
+By Pierre Beaujean

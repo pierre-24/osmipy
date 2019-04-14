@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+mendeleev = "*"
+
+[dev-packages]
+"flake8" = "*"
+"flake8-quotes" = "*"
+"autopep8" = "*"
+Sphinx = "*"
+osmipy = {editable = true, path = "."}
+
+[requires]
+python_version = "3.6"
