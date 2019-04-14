@@ -6,15 +6,16 @@ import shutil
 
 class OSmiPyTestCase(unittest.TestCase):
 
-    TEST_FILES = 'test_files'
+    TEST_FILES = 'tests_files'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.tests_files_directory = os.path.join(os.path.dirname(__file__), self.TEST_FILES)
-        self.assertTrue(
-            os.path.exists(self.tests_files_directory),
-            msg='test directory {} does not exist'.format(self.tests_files_directory))
+        if kwargs.get('use_test_dir', False):
+            self.tests_files_directory = os.path.join(os.path.dirname(__file__), self.TEST_FILES)
+            self.assertTrue(
+                os.path.exists(self.tests_files_directory),
+                msg='test directory {} does not exist'.format(self.tests_files_directory))
 
         self.temporary_directory = tempfile.mkdtemp()
 
