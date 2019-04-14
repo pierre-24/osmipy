@@ -1,0 +1,49 @@
+# token definitions:
+DIGIT := '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+LPAR := '(' ;
+RPAR := ')' ;
+LSPAR := '[' ;
+RSPAR := ']' ;
+PLUS := '+' ;
+MINUS := '-' ;
+DOT := '.' ;
+WILDCARD := '*' ;
+PERCENT := '%' ;
+AT = '@' ;
+COLON := ':' ;
+EOF := ' ' | '\t' | '\n' | '\r' | '\0' ;
+
+# basic types
+bond := '=' | '#' | '$' | '/' | '\' | MINUS | COLON ;
+element := 'H' | 'He' | ... ;
+aromatic_element := 'b' | 'c' | 'n' | 'o' | 'p' | 's' | 'se' | 'as' ;
+aliphatic_element := 'B' | 'C' | 'N' | 'O' | 'S' | 'P' | 'F' | 'Cl' | 'Br' | 'I'
+organic_subset := aliphatic_element | aromatic_element ;
+symbol := element | aromatic_element | WILDCARD ;
+isotope := DIGIT* ;
+chirality := AT AT? ;
+hcount := 'H' DIGIT? ;
+charge := (MINUS (DIGIT? DIGIT)?) | (PLUS (DIGIT? DIGIT)?) ;
+class := COLON DIGIT DIGIT? DIGIT? DIGIT? ;
+
+# Parser.braket_atom()
+bracket_atom := LSPAR isotope? symbol chirality? hcount? charge? class? RSPAR ;
+
+# Parser.atom()
+atom := bracket_atom | organic_subset | WILDCARD ;
+
+# Parser.ring_id()
+ring_id := DIGIT | PERCENT DIGIT DIGIT ;
+ring_bond := bond? ring_id ;
+
+# Parser.branch()
+branch := LPAR (bond | DOT)? chain RPAR ;
+
+# Parser.branched_atom() (see note)
+branched_atom := atom ring_bond* branch* ;
+
+# Parser.chain() (see note)
+chain := branched_atom ((bond | DOT)? chain)? ;
+
+# Parser.smiles()
+smiles := chain? EOF ;

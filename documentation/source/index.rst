@@ -9,4 +9,7 @@ By Pierre Beaujean
    :maxdepth: 2
    :caption: Contents:
 
+   about-smiles
+   api
+
 

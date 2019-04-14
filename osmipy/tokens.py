@@ -76,6 +76,7 @@ NORMAL_VALENCES = {
 
 
 class Token:
+    """Token class"""
     def __init__(self, type_, value, position=-1):
         self.type = type_
         self.value = value
