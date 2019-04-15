@@ -23,4 +23,4 @@ obj = smiles.SMILES('C12(CCCCC1)CCCCC2')
 
 ## Install and/or contribute
 
-The installation procedure is detailed [here](./documentation/source/install.rst), while the contribution rules are listed [here](./documentation/source/contributing.rst).
+The installation procedure is detailed [here](https://pierre-24.github.io/osmipy/install.html), while the contribution rules are listed [here](https://pierre-24.github.io/osmipy/contributing.html).

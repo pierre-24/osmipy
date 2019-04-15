@@ -8,7 +8,7 @@ To just use ``qcip_tools`` in your Python projects, simply use pip:
 
 .. code-block:: bash
 
-    pip3 install git+ssh://git@github.com:pierre-24/osmipy.git@dev
+    pip3 install git+ssh://git@github.com:pierre-24/osmipy.git
 
 Note that ``--user`` can allow you to install the package without being superuser (see `here <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_).
 On the other hand, you can install it in a *virtualenv*.
@@ -35,4 +35,4 @@ To contribute to the project, you need to clone the repository:
 
 You can launch the tests series with ``make test``
 
-Don't forget to check the `contribution rules <contributing.html>`_.
+Don't forget to check the `contribution rules <https://pierre-24.github.io/osmipy/contributing.html>`_.

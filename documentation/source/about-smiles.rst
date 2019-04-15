@@ -1,9 +1,6 @@
 SMILES
 ======
 
-Theory
-------
-
 About SMILES
 ++++++++++++
 
@@ -60,24 +57,6 @@ For the planar stereo configuration, there is three possible values: ``U``, ``Z`
     The question is always "how to read ``(a,b,c,d)`` so that the sequence matches ``(0,1,2,3)``".
     To do so, the first part is to set a ``start`` atom (the others are the ``refs`` in the implementation) and set the corresponding ``value``.
 
-
-Grammar and parsing
-+++++++++++++++++++
-
-The grammar used by this implementation is derived from the work done in `OpenSMILES <http://opensmiles.org/opensmiles.html>`_, but some rules where slightly modified (``chain`` use left recursion rather than right and ``ringbond`` was modified).
-
-.. literalinclude:: ./grammars/smiles.txt
-  :caption: :download:`./grammars/smiles.txt`
-
-Unless stated otherwise, this implementation follows the open specification, except:
-
-+ All the ``aromatic_element`` is fully included in the ``organic_subset`` (so that ``se`` and ``as`` can be used without brackets) ;
-+ Square planar (``@SP``), bipyramidal (``@TB``) and octahedral (``@OH``) chirality are not implemented (not even in the grammar) ;
-+ There is not check of the aromaticity (or not) yet (that should go into ``Validation``) ;
-+ Implicit hydrogen count (for element of the so-called *organic* subset) is not always correct (especially with aromaticity, for example the nitrogen in ``n1ccccc1``) ;
-+ The output is not *standardized* (nor *canonical*), especially concerning cycles and "removing chiral marking on atoms that are not" (that should go into ``Validation``) ;
-+ There is not (yet?) way to allow *non-standard* (loosy) SMILES inputs!
-
 Implementation details
 ++++++++++++++++++++++
 
@@ -117,8 +96,26 @@ The ``BranchedAtom`` also contains an ``Atom``, which stores informations about 
 Note that the ``atom_id`` field is only there to help interaction with higher-level libraries, and should not be considered as *unique* (except if the validator is used, which checks the uniqueness).
 
 
+Grammar and parsing
++++++++++++++++++++
+
+The grammar used by this implementation is derived from the work done in `OpenSMILES <http://opensmiles.org/opensmiles.html>`_, but some rules where slightly modified (``chain`` use left recursion rather than right and ``ringbond`` was modified).
+
+.. literalinclude:: ./grammars/smiles.txt
+  :caption: :download:`./grammars/smiles.txt`
+
+Unless stated otherwise, this implementation follows the open specification, except:
+
++ All the ``aromatic_element`` is fully included in the ``organic_subset`` (so that ``se`` and ``as`` can be used without brackets) ;
++ Square planar (``@SP``), bipyramidal (``@TB``) and octahedral (``@OH``) chirality are not implemented (not even in the grammar) ;
++ There is not check of the aromaticity (or not) yet (that should go into ``Validation``) ;
++ Implicit hydrogen count (for element of the so-called *organic* subset) is not always correct (especially with aromaticity, for example the nitrogen in ``n1ccccc1``) ;
++ The output is not *standardized* (nor *canonical*), especially concerning cycles and "removing chiral marking on atoms that are not" (that should go into ``Validation``) ;
++ There is not (yet?) way to allow *non-standard* (loosy) SMILES inputs!
+
+
 Sources
--------
++++++++
 
 + `Wikipedia page of SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_ ;
 + `The OpenSMILES specification <http://opensmiles.org/opensmiles.html>`_ ;

@@ -2,7 +2,7 @@
 Contributing
 ============
 
-You first need to `install <./install.html>`_ if you wan to contribute to the code.
+You first need to `install <https://pierre-24.github.io/osmipy/install.html>`_ if you wan to contribute to the code.
 
 Design rules
 ------------

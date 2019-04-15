@@ -1,18 +1,25 @@
-Welcome to osmipy's documentation!
-==================================
+Welcome to ``osmipy``'s documentation!
+======================================
 
-A simple python library to interpret SMILES (`Simplified Molecular InputLine Entry System <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_).
+**osmipy** (Open SMILES Python library) is a simple python library to extract an AST from a SMILES (`Simplified Molecular Input Line-Entry System <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_) string, written by `Pierre Beaujean <https://pierrebeaujean.net>`_.
 
-By `Pierre Beaujean <https://pierrebeaujean.net>`_
+
+Documentation
+-------------
 
 .. toctree::
     :maxdepth: 2
-    :caption: Contents:
 
-    about-smiles
-    smarts
     install
-    contributing
+    about-smiles
     api
+    contributing
 
+Additional notes
+----------------
+
+.. toctree::
+    :maxdepth: 2
+
+    smarts
 
