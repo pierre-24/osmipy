@@ -65,9 +65,7 @@ So,
 
 1. Lexical analysis using the `Lexer class <api/lexer.html#osmipy.lexer.Lexer>`_, which cuts the input string into tokens (`Token class <api/tokens.html#osmipy.tokens.Token>`_) ;
 2. Syntaxic analysis using the `Parser class <api/parser.html#osmipy.parser.Parser>`_, which turns the stream of tokens into an abstract syntax tree (`AST class <api/smiles_ast.html#osmipy.smiles_ast.AST>`_ and children).
-3. Validation using the `Validator class <api/validator.html#osmipy.validator.Validator>`_ (which implements the `visitor pattern <https://en.wikipedia.org/wiki/Visitor_pattern>`_, with the `NodeVisitor class <api/visitor.html#osmipy.visitor.NodeVisitor>`_ ), which checks that ring bonds comes by pair, that an atom is not bonded to itself, and the same bond symbol is used in both definitions (if both are defined).
-   It also fill the ``parent`` and ``target`` parameters of ``RingBond``.
-4. On top of that, the `SMILES class <api/smiles.html#osmipy.smiles.SMILES>`_ generate the AST from a string and validates it.
+3. On top of that, the `SMILES class <api/smiles.html#osmipy.smiles.SMILES>`_ generate the AST from a string and validates it.
    For the other way around, the interpretation is done with the `Interpreter class <api/smiles.html#osmipy.smiles.Interpreter>`_, which turns an AST into a SMILES string (still implementing the visitor pattern).
 
 .. note::
@@ -80,15 +78,13 @@ So,
         branched_atom' := atom ring_id* ;
         chain' := branched_atom' ring_bond* branch* ((bond | DOT)? chain')? ;
 
-    Since it needs a final validation step, it would still requires backtracking, but whatever.
-
 The relation between the AST objects is given by the following figure:
 
 .. figure:: ./images/smiles_classes.png
     :align: center
 
     Flowchart of the different AST objects.
-    Note that the ``parent`` attributes is set at the initialization of the object (except the blue arrow, ``target``, which is set by the validator)
+    Note that the ``parent`` attributes is set at the initialization of the object
 
 A ``Chain`` is a succession of ``BranchedAtom``, but those can have ``Branch`` (other chains) or ``RingBond`` (loops in the graph).
 

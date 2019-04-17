@@ -32,7 +32,7 @@ bracket_atom := LSPAR isotope? symbol chirality? hcount? charge? class? RSPAR ;
 # Parser.atom()
 atom := bracket_atom | organic_subset | WILDCARD ;
 
-# Parser.ring_id()
+# Parser.ring_bond()
 ring_id := DIGIT | PERCENT DIGIT DIGIT ;
 ring_bond := bond? ring_id ;
 

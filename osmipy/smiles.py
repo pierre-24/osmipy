@@ -1,7 +1,7 @@
 import copy
 
 import osmipy.smiles_ast
-from osmipy import parser, lexer, validator, visitor
+from osmipy import smiles_parser, lexer, visitor
 from osmipy.tokens import *
 
 
@@ -108,24 +108,94 @@ class Interpreter(visitor.NodeVisitor):
         return node.symbol if node.symbol is not None else ''
 
 
+class UnicityException(Exception):
+    pass
+
+
+class AtomIdCheckAndUpdate(visitor.ASTVisitor):
+    """Visitor that
+
+    Keeps a dictionary of the atoms id, ``atom_ids``, and check that they are all uniques.
+    In other words,  it does the job of the parser for nodes that may have been constructed from scratch.
+
+    :param node: the node
+    :type node: Chain
+    """
+    def __init__(self, node):
+        super().__init__(node)
+
+        self.atom_ids = {}
+        self.next_atom_id = 0
+
+    def validate(self, shift_id=0):
+        """Validate the AST
+
+        :param shift_id: shift all atom id
+        :type shift_id: int
+        """
+        if self.node is not None:
+            self.atom_ids = {}
+            self.next_atom_id = 0
+            self._start(shift_id=shift_id)
+
+    def visit_atom(self, node, shift_id=0, *args, **kwargs):
+        """Just update the list of ids
+
+        :param node: node
+        :type node: qcip_tools.smiles.Atom
+        :param shift_id: shift all atom id
+        :type shift_id: int
+        """
+
+        super().visit_atom(node, *args, **kwargs)
+
+        if node.atom_id > -1:
+            if shift_id != 0:
+                node.atom_id += shift_id
+
+            if node.atom_id not in self.atom_ids:
+                self.atom_ids[node.atom_id] = node
+                if self.next_atom_id <= node.atom_id:
+                    self.next_atom_id = node.atom_id + 1
+            else:
+                raise UnicityException('two atoms share the same id: {}!'.format(node.atom_id))
+
+    def update(self, fragment):
+        """Update the validator with a new fragment
+
+        :param fragment: the new fragment
+        :type fragment: Chain
+        """
+
+        validator = AtomIdCheckAndUpdate(fragment)
+        validator.validate(shift_id=self.next_atom_id)
+        self.atom_ids.update(validator.atom_ids)
+        self.next_atom_id = validator.next_atom_id
+
+
 class SMILES:
-    """SMILES
+    """SMILES object
+
+    This object is immutable.
 
     :param input_: input
     :type input_: Chain|str
     """
-    def __init__(self, input_='', validate=True):
+    def __init__(self, input_=''):
         self.node = None
         if type(input_) is str:
-            self.node = parser.Parser(lexer.Lexer(input_)).smiles()
+            parser_obj = smiles_parser.Parser(lexer.Lexer(input_))
+            self.node = parser_obj.smiles()
+            self.atom_ids = parser_obj.atom_ids
+            self.next_atom_id = parser_obj.next_atom_id
         elif type(input_) is osmipy.smiles_ast.Chain:
             self.node = input_
+            validator = AtomIdCheckAndUpdate(self.node)
+            validator.validate()
+            self.atom_ids = validator.atom_ids
+            self.next_atom_id = validator.next_atom_id
         else:
             raise TypeError(input_)
-
-        self.validator = validator.Validator(self.node)
-        if self.node is not None and validate:
-            self.validator.validate()
 
     def __repr__(self):
         return Interpreter(self.node).interpret()
@@ -155,7 +225,9 @@ class SMILES:
         c.bond = osmipy.smiles_ast.Bond('.')
 
         if validate:
-            ns.validator.update(node)
+            updater = AtomIdCheckAndUpdate(node)
+            updater.validate(shift_id=self.next_atom_id)
+            ns.atom_ids.update(updater.atom_ids)
 
         return ns
 
@@ -170,4 +242,4 @@ class SMILES:
         :rtype: qcip_tools.smiles.Atom
         """
 
-        return self.validator.atom_ids[atom_id]
+        return self.atom_ids[atom_id]

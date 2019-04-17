@@ -23,7 +23,14 @@ class Parser:
         self.current_token = None
         self.previous_tokens = []
         self.use_previous = 0
-        self.atom_id = 0
+
+        self.next_atom_id = 0
+        self.atom_ids = {}
+
+        self._ring_ids = {}
+        self._ring_pairs_pid = []
+        self.ring_bond_pairs = []
+
         self.next()
 
     def eat(self, token_type):
@@ -146,8 +153,9 @@ class Parser:
         else:
             raise ParserException(self.current_token, 'unexpected token in atom')
 
-        atom.atom_id = self.atom_id
-        self.atom_id += 1
+        atom.atom_id = self.next_atom_id
+        self.atom_ids[self.next_atom_id] = atom
+        self.next_atom_id += 1
 
         return atom
 
@@ -171,32 +179,78 @@ class Parser:
 
         return Branch(chain=chain, bond=bond)
 
-    def ring_id(self):
+    def ring_bond(self):
         """
 
         :rtype: osmipy.smiles_ast.RingBond
         """
 
-        if self.current_token.type == PERCENT:
+        ring_id = 0
+
+        if self.current_token.type == PERCENT:  # > 10
             token_percent = self.current_token
             self.next()
 
             if self.current_token.type != DIGIT:
                 raise ParserException(token_percent, 'expected DIGIT in ringbond')
 
-            number = 0
             i = 0
             while self.current_token.type == DIGIT and i < 2:
-                number = number * 10 + self.current_token.value
+                ring_id = ring_id * 10 + self.current_token.value
                 i += 1
                 self.next()
-            return RingBond(ring_id=number)
-        elif self.current_token.type == DIGIT:
-            node = RingBond(ring_id=self.current_token.value)
+        elif self.current_token.type == DIGIT:  # < 10
+            ring_id = self.current_token.value
             self.next()
-            return node
         else:
             raise ParserException(self.current_token, 'expected PERCENT or DIGIT in ring_id')
+
+        node = RingBond(ring_id=ring_id)
+        return node
+
+    def _consolidate_ring_bonds(self, ring_bonds):
+        """Connect the two ends of a ring bond.
+
+        The first time the ring id is met, it stores the ring bond into ``self.ring_ids``.
+        The second times, it connects the two ends, but check first:
+
+        + That the bonds are of the same type (ex: ``C(-1)CC=1`` is not allowed, but note that ``C1C=1`` is) ;
+        + That it does not bound to the same atom (ex: ``C11`` is not allowed) ;
+        + That the same bond is not defined twice (ex: ``C12CC12`` is not allowed) ;
+        + That it does not bond to a direct pair (ex: ``C1C1`` is not allowed).
+
+        :param ring_bonds: list of ring bonds to consolidate
+        :type ring_bonds: list[osmipy.smiles_ast.RingBond]
+        """
+
+        for rb in ring_bonds:
+            i = rb.ring_id
+            if i not in self._ring_ids:
+                self._ring_ids[rb.ring_id] = rb  # store 'til next time
+            else:  # connect
+                other_rb = self._ring_ids[i]
+                if rb.bond is not None and other_rb.bond is not None:
+                    if rb.bond != other_rb.bond:
+                        raise ParserException(
+                            self.current_token, 'ring id {}: not the same type of bond at the two ends'.format(i))
+
+                if id(rb.parent) == id(other_rb.parent):
+                    raise ParserException(self.current_token, 'ring id {}: bond to same atom'.format(i))
+
+                pair = (id(rb.parent), id(other_rb.parent))
+                if pair[0] > pair[1]:
+                    pair = tuple(reversed(pair))
+
+                if pair in self._ring_pairs_pid:
+                    raise ParserException(self.current_token, 'ring id {}: this bond is already defined'.format(i))
+                else:
+                    self._ring_pairs_pid.append(pair)
+
+                # if everything is ok, do the connection
+                rb.target, other_rb.target = other_rb.parent, rb.parent
+
+                del self._ring_ids[i]
+                self.ring_bond_pairs.append((other_rb, rb))  # 'til the end
 
     def branched_atom(self):
         """
@@ -215,9 +269,13 @@ class Parser:
         ringbonds = []
 
         while self.current_token.type in [DIGIT, PERCENT]:
-            ringbonds.append(self.ring_id())
+            ring_bond = self.ring_bond()
+            ringbonds.append(ring_bond)
 
-        return BranchedAtom(atom=atom, ring_bonds=ringbonds, branches=[])
+        ba = BranchedAtom(atom=atom, ring_bonds=ringbonds, branches=[])
+
+        self._consolidate_ring_bonds(ringbonds)  # ... only after setting their parents !
+        return ba
 
     def chain(self):
         """
@@ -242,21 +300,25 @@ class Parser:
             self.next()
 
         right = None
+        ring_bonds_to_consolidate = []
 
         while self.current_token.type in [PERCENT, DIGIT]:
             if bond is None and bond.symbol != DOT:
                 raise ParserException(self.current_token, 'ring_id requires a bond in this position')
 
-            ring_id = self.ring_id()
-            ring_id.bond = bond
-            ring_id.parent = left
-            left.ring_bonds.append(ring_id)
+            ring_bond = self.ring_bond()
+            ring_bond.bond = bond
+            ring_bond.parent = left
+            ring_bonds_to_consolidate.append(ring_bond)
+            left.ring_bonds.append(ring_bond)
             bond = None
 
             # needs to get an eventual new bond
             if self.current_token.type in BONDS_TYPE + [DOT]:
                 bond = Bond(self.current_token.value)
                 self.next()
+
+        self._consolidate_ring_bonds(ring_bonds_to_consolidate)
 
         if bond is None:
             while self.current_token.type == LPAR:
@@ -286,5 +348,16 @@ class Parser:
             node = self.chain()
 
         self.eat(EOF)
+
+        # check for unmatched ring bonds
+        if len(self._ring_ids) != 0:
+            raise ParserException(
+                self.current_token,
+                'unmatched ring ids left: {}'.format(','.join(str(i) for i in self._ring_ids.keys())))
+
+        # check for direct pair
+        for rb1, rb2 in self.ring_bond_pairs:
+            if id(rb1.parent.parent) == id(rb2.parent.parent.parent):
+                raise ParserException(self.current_token, 'ring id {}: direct pair is not allowed'.format(rb1.ring_id))
 
         return node
