@@ -1,0 +1,719 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>WIP: SMARTS &#8212; osmipy 0.1a documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Contributing" href="contributing.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="wip-smarts">
+<h1>WIP: SMARTS<a class="headerlink" href="#wip-smarts" title="Permalink to this headline">¶</a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This is a <em>work in progress</em>, for an eventual implementation of SMARTS into the library, for pattern matching.
+This is a preliminary documents for the main idea between a possible implementation, in the same way as the OpenSMILES specification (but let’s be honest, not that good).</p>
+</div>
+<div class="section" id="theory">
+<h2>Theory<a class="headerlink" href="#theory" title="Permalink to this headline">¶</a></h2>
+<p>SMARTS (SMILES arbitrary target specification) is “language for specifying substructural patterns in molecules”.
+It is therefore an extension to SMILES, which adds tools to define a pattern (logical operators and atom and bonds types) to match a target.
+But the purpose is different: SMILES represent a molecular system (within the valence model), SMARTS may not represent a valid molecule in itself (for example, <code class="docutils literal notranslate"><span class="pre">cc</span></code> is not a valid SMILES string) but a pattern (<code class="docutils literal notranslate"><span class="pre">cc</span></code> will match <code class="docutils literal notranslate"><span class="pre">c1[nH]ccc1</span></code> or <code class="docutils literal notranslate"><span class="pre">c1ccccc1</span></code>).</p>
+<p>Pattern matching implies:</p>
+<ul class="simple">
+<li><p>Either checking that there is at least one match in the SMILES string ;</p></li>
+<li><p>Or getting the set of all group of atom that the pattern matched (there maybe multiple matches inside a given SMILES string).</p></li>
+</ul>
+<div class="section" id="grammar">
+<h3>Grammar<a class="headerlink" href="#grammar" title="Permalink to this headline">¶</a></h3>
+<p>The grammar presented here is close to the one of SMILES <a class="reference external" href="about-smiles.html#grammar-and-parsing">presented here</a>:</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text"><a class="reference download internal" download="" href="_downloads/f826400335c4bff249fabd6ebc8e8e2c/smarts.txt"><code class="xref download docutils literal notranslate"><span class="pre">./grammars/smarts.txt</span></code></a></span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># DRAFT!!!
+
+# token definitions:
+DIGIT := &#39;0&#39; | &#39;1&#39; | &#39;2&#39; | &#39;3&#39; | &#39;4&#39; | &#39;5&#39; | &#39;6&#39; | &#39;7&#39; | &#39;8&#39; | &#39;9&#39; ;
+LPAR := &#39;(&#39; ;
+RPAR := &#39;)&#39; ;
+LSPAR := &#39;[&#39; ;
+RSPAR := &#39;]&#39; ;
+PLUS := &#39;+&#39; ;
+MINUS := &#39;-&#39; ;
+DOT := &#39;.&#39; ;
+COMMA := &#39;,&#39; ;
+SEMI := &#39;;&#39; ;
+AMP := &#39;&amp;&#39; ;
+WILDCARD := &#39;*&#39; ;
+PERCENT := &#39;%&#39; ;
+AT = &#39;@&#39; ;
+COLON := &#39;:&#39; ;
+EXCL = &#39;!&#39; ;
+QUESTION_MARK = &#39;?&#39; ;
+TILDE := &#39;~&#39; ;
+EOF := &#39; &#39; | &#39;\t&#39; | &#39;\n&#39; | &#39;\r&#39; | &#39;\0&#39; ;
+
+# basic types
+elements := &#39;H&#39; | &#39;He&#39; | ... ;
+aromatic_element := &#39;b&#39; | &#39;c&#39; | &#39;n&#39; | &#39;o&#39; | &#39;p&#39; | &#39;s&#39; | &#39;se&#39; | &#39;as&#39; ;
+aliphatic_element := &#39;B&#39; | &#39;C&#39; | &#39;N&#39; | &#39;O&#39; | &#39;S&#39; | &#39;P&#39; | &#39;F&#39; | &#39;Cl&#39; | &#39;Br&#39; | &#39;I&#39;
+organic_subset := aliphatic_element | aromatic_element ;
+atom_wildcard := &#39;a&#39; | &#39;A&#39; ;
+atom_selector := ((&#39;D&#39; | &#39;v&#39; | &#39;X&#39;) DIGIT) | (( &#39;x&#39; | &#39;R&#39; | &#39;r&#39;) DIGIT?) ;
+atomic_number := &#39;#&#39; DIGIT DIGIT? ;
+
+symbol := atom_wildcard | element | aromatic_element | WILDCARD ;
+
+# bonds
+bond := EXCL? (&#39;=&#39; | &#39;#&#39; | &#39;$&#39; | &#39;/&#39; QUESTION_MARK?  | &#39;\&#39; QUESTION_MARK? | MINUS | COLON | TILDE | AT);
+
+and2_expr_bonds := bond (AMP and2_expr_bonds)? ;
+or_expr_bonds := and2_expr_bonds (COMMA or_expr_bonds)? ;
+and_expr_bonds := or_expr_bonds (SEMI and_expr_bonds)? ;
+
+# atomic properties
+isotope := DIGIT* ;
+chirality := AT AT? ;
+hcount := (&#39;H&#39; | &#39;h&#39;) DIGIT? ;
+charge := (MINUS (DIGIT? DIGIT)?) | (PLUS (DIGIT? DIGIT)?) ;
+class := COLON DIGIT DIGIT? DIGIT? DIGIT? ;
+
+recursive_smarts := &#39;$&#39; LPAR chain RPAR ;
+
+atomic_property := isotope | symbol | atom_selector | atomic_number | chirality | hcount | charge | class ;
+
+property := EXCL? (recursive_smarts | atomic_property)
+
+and2_expr_properties := property (AMP? and2_expr_properties)? ;
+or_expr_properties := and2_expr_properties (COMMA or_expr_properties)? ;
+and_expr_properties := or_expr_properties (SEMI and_expr_properties)? ;
+
+bracket_atom := LSPAR and_expr_properties RSPAR ;
+
+atom := bracket_atom | organic_subset | atom_wildcard | WILDCARD ;
+
+ring_id := DIGIT | PERCENT DIGIT DIGIT ;
+ring_bond := bond? ring_id ;
+
+branch := LPAR (bond | DOT)? chain RPAR ;
+
+branched_atom := atom ring_bond* branch* ;
+
+chain := branched_atom ((and_expr_bonds | DOT)? chain)? ;
+
+# Parser.smarts()
+smarts:= chain? EOF ;
+</pre></div>
+</div>
+</div>
+<p>The logical operators add a layer of complexity to the grammar, but keep in mind that “almost all SMILES specification are valid SMARTS [targets]”.</p>
+</div>
+<div class="section" id="semantic">
+<h3>Semantic<a class="headerlink" href="#semantic" title="Permalink to this headline">¶</a></h3>
+<p>There is no definition, like for SMILES, of SMARTS.
+Also, I find the pages of Daylight and OpenEye on the subject quite fuzzy on different topics, so I will try to expend a bit what I did understand (and implement) out of that.</p>
+<div class="section" id="atomic-properties">
+<h4>Atomic properties<a class="headerlink" href="#atomic-properties" title="Permalink to this headline">¶</a></h4>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>In SMILES, default values were assumed for the properties of atoms without square brackets.
+In SMARTS, a property is not defined, then <strong>it is not part of the pattern</strong>, and will therefore match <strong>any</strong> of the value of the given properties (including none).</p>
+</div>
+<div class="section" id="atom">
+<h5>Atom<a class="headerlink" href="#atom" title="Permalink to this headline">¶</a></h5>
+<p>An atom is matched by its symbol, and the rule for this symbol are the same than in SMILES (only the atoms in the organic subset are allowed to be used without square brackets).</p>
+<p>Instead of the atom symbol, the atomic number can be used with the <code class="docutils literal notranslate"><span class="pre">'#'</span></code> symbol, followed by the atomic number, inside square brackets (outside, it would be confused with the triple bond symbol).
+It may be used to select an atom, no matter if it is aromatic or not.</p>
+<p>For example:</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>SMILES string</p></th>
+<th class="head"><p>SMARTS pattern</p></th>
+<th class="head"><p>Match?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CCO</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">C</span></code> (or <code class="docutils literal notranslate"><span class="pre">[C]</span></code>)</p></td>
+<td><p>Yes (for both carbons)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">c1ccccc1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">C</span></code> (or <code class="docutils literal notranslate"><span class="pre">[C]</span></code>)</p></td>
+<td><p><strong>No</strong></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">c1cc(CO)ccc1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">c</span></code> (or <code class="docutils literal notranslate"><span class="pre">[c]</span></code>)</p></td>
+<td><p>Yes (but only the aromatic carbons)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">c1cc(CO)ccc1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">C</span></code> (or <code class="docutils literal notranslate"><span class="pre">[C]</span></code>)</p></td>
+<td><p>Yes (but only the aliphatic carbon)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[#6]</span></code></p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">c1cc(CO)ccc1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[#6]</span></code></p></td>
+<td><p>Yes (for any carbon!)</p></td>
+</tr>
+</tbody>
+</table>
+<p>The wildcard symbol (the <code class="docutils literal notranslate"><span class="pre">'*'</span></code> symbol) matches every atom (while it was an unknown atom in SMILES).</p>
+<p>SMARTS adds two other simple wildcard atoms: <code class="docutils literal notranslate"><span class="pre">a</span></code>, which matches any aromatic atom, and <code class="docutils literal notranslate"><span class="pre">A</span></code>, which matches the aliphatics ones:</p>
+<ul class="simple">
+<li><p>Aliphatic atoms: <code class="docutils literal notranslate"><span class="pre">B</span></code>, <code class="docutils literal notranslate"><span class="pre">C</span></code>, <code class="docutils literal notranslate"><span class="pre">N</span></code>, <code class="docutils literal notranslate"><span class="pre">O</span></code>, <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">P</span></code>, <code class="docutils literal notranslate"><span class="pre">F</span></code>, <code class="docutils literal notranslate"><span class="pre">Cl</span></code>, <code class="docutils literal notranslate"><span class="pre">Br</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code> ;</p></li>
+<li><p>Aromatics atoms: <code class="docutils literal notranslate"><span class="pre">b</span></code>, <code class="docutils literal notranslate"><span class="pre">c</span></code>, <code class="docutils literal notranslate"><span class="pre">n</span></code>, <code class="docutils literal notranslate"><span class="pre">o</span></code>, <code class="docutils literal notranslate"><span class="pre">p</span></code>, <code class="docutils literal notranslate"><span class="pre">s</span></code>, <code class="docutils literal notranslate"><span class="pre">se</span></code>, <code class="docutils literal notranslate"><span class="pre">as</span></code>.</p></li>
+</ul>
+<p>Those 3 wildcards can be written without square brackets.</p>
+<p>Examples:</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>SMILES string</p></th>
+<th class="head"><p>SMARTS pattern</p></th>
+<th class="head"><p>Match?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">*</span></code> (or <code class="docutils literal notranslate"><span class="pre">[*]</span></code>)</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">A</span></code> (or <code class="docutils literal notranslate"><span class="pre">[A]</span></code>)</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">a</span></code> (or <code class="docutils literal notranslate"><span class="pre">[a]</span></code>)</p></td>
+<td><p><strong>No</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">c1[nH]ccc1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">a</span></code>  (or <code class="docutils literal notranslate"><span class="pre">[a]</span></code>)</p></td>
+<td><p>Yes (for any atom of the cycle)</p></td>
+</tr>
+</tbody>
+</table>
+<p>More complex wildcards, which may take an argument (a digit), can be used to match atom properties.
+They are only defined inside square brackets.</p>
+<p>There is three wildcards to match the number of connections via different definitions: <code class="docutils literal notranslate"><span class="pre">D</span></code>, <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code>.</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Definition</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">[X&lt;n&gt;]</span></code></p></td>
+<td><p>Atom with <code class="docutils literal notranslate"><span class="pre">n</span></code> connections (including hydrogens)</p></td>
+<td><p><em>The argument must be specified</em></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">[D&lt;n&gt;]</span></code></p></td>
+<td><p>Atom with <code class="docutils literal notranslate"><span class="pre">n</span></code> explicit connections (without implicit or <code class="docutils literal notranslate"><span class="pre">hcount</span></code> hydrogens)</p></td>
+<td><p><em>The argument must be specified</em></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">[v&lt;n&gt;]</span></code></p></td>
+<td><p>Valence (sum of bond orders)</p></td>
+<td><p><em>The argument must be specified</em></p></td>
+</tr>
+</tbody>
+</table>
+<p>The total valence include implicit or <code class="docutils literal notranslate"><span class="pre">hcount</span></code> hydrogens (with which the bond is assumed to be single).
+The bond order depends on the bond symbol used (and does not take electron delocalization into account):</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Bond type</p></th>
+<th class="head"><p>Symbol(s)</p></th>
+<th class="head"><p>Bond order</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Disconnected</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.</span></code></p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Single</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>, <code class="docutils literal notranslate"><span class="pre">\</span></code> or implicit</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>Aromatic</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">:</span></code> or implicit</p></td>
+<td><p>1.5</p></td>
+</tr>
+<tr class="row-odd"><td><p>Double</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">=</span></code></p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p>Triple</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#</span></code></p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p>Quadruple</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">$</span></code></p></td>
+<td><p>4</p></td>
+</tr>
+</tbody>
+</table>
+<p>Examples:</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>SMILES string</p></th>
+<th class="head"><p>SMARTS pattern</p></th>
+<th class="head"><p>Match?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[X4]</span></code></p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[D4]</span></code></p></td>
+<td><p><strong>No</strong></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[v4]</span></code></p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">C=C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[X3]</span></code></p></td>
+<td><p>Yes (for both carbons)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">C=C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[D3]</span></code></p></td>
+<td><p><strong>No</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">C=C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[D1]</span></code></p></td>
+<td><p>Yes (for both carbons)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">C=C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[v4]</span></code></p></td>
+<td><p>Yes (for both carbons)</p></td>
+</tr>
+</tbody>
+</table>
+<p>There is, finally, three wildcards to address the specific presence of an atom into a ring: <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">R</span></code> and <code class="docutils literal notranslate"><span class="pre">r</span></code>.
+The first two are synonyms, since this implementation follows the position of OpenEye over the one of Daylight on SSSR (Smallest Set of Smallest Rings).</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Definition</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">[r&lt;n&gt;]</span></code></p></td>
+<td><p>Atom that is in a ring of size <code class="docutils literal notranslate"><span class="pre">n</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[r]</span></code> is “any ring atom”, while <code class="docutils literal notranslate"><span class="pre">[r0]</span></code> is “not part of any ring”</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">[x&lt;n&gt;]</span></code> or <code class="docutils literal notranslate"><span class="pre">[R&lt;n&gt;]</span></code></p></td>
+<td><p>Atom for which  <code class="docutils literal notranslate"><span class="pre">n</span></code> (explicit) connection are part of a ring</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[x]</span></code> is “any ring atom” (same for <code class="docutils literal notranslate"><span class="pre">[R]</span></code>), while <code class="docutils literal notranslate"><span class="pre">[x0]</span></code> is “not bounded to any ring”</p></td>
+</tr>
+</tbody>
+</table>
+<p>To understand (and implement) those wildcards, the first concept is <em>ring membership</em>, which is the target of either <code class="docutils literal notranslate"><span class="pre">[r]</span></code>, <code class="docutils literal notranslate"><span class="pre">[R]</span></code> or <code class="docutils literal notranslate"><span class="pre">[x]</span></code>, which all match <strong>any</strong> atom present in a ring.
+A ring is defined as a cycle when there is not bond between the atoms, other than the previous and next: indole is perceived as fused 6 and 5-members rings rather than a 9-membered ring.</p>
+<p>The size of the ring in which the atom is present is the specific goal of <code class="docutils literal notranslate"><span class="pre">r</span></code>: <code class="docutils literal notranslate"><span class="pre">[r5]</span></code> matches all the atoms of 5-member rings, while <code class="docutils literal notranslate"><span class="pre">[r6]</span></code> does the same for 6-member rings.</p>
+<p>On the other hand, the goal of <code class="docutils literal notranslate"><span class="pre">x</span></code> (and <code class="docutils literal notranslate"><span class="pre">R</span></code>) is the number of ring connection: <code class="docutils literal notranslate"><span class="pre">[x1]</span></code> matches all the atoms bounded to exactly one atom member of a ring, <code class="docutils literal notranslate"><span class="pre">[x2]</span></code> all the atoms bounded to exactly two atoms member of a ring, etc.
+Therefore, an atom matched by <code class="docutils literal notranslate"><span class="pre">[x&lt;n&gt;]</span></code> (with <code class="docutils literal notranslate"><span class="pre">n</span></code> defined) <strong>may not be part of a ring</strong>.</p>
+<p>Example on the caffeine molecule:</p>
+<div class="figure align-center" id="id2">
+<img alt="_images/smarts_ring.png" src="_images/smarts_ring.png" />
+<p class="caption"><span class="caption-text">Colored atom are matched by the pattern in the same color.
+All colored atoms are matched individually, a continuous line is only used to ease the interpretation.
+Note that <code class="docutils literal notranslate"><span class="pre">[x0]</span></code> does not match any atom of this molecule, since they are all bounded or part of a ring.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="other-atomic-properties">
+<h5>Other atomic properties<a class="headerlink" href="#other-atomic-properties" title="Permalink to this headline">¶</a></h5>
+<p>The isotope can be used to match an atom, for example <code class="docutils literal notranslate"><span class="pre">[35]</span></code> matches all atom with an isotope of <code class="docutils literal notranslate"><span class="pre">35</span></code>.
+This only works on atom where the isotope is defined (to avoid getting stuck into the debate of what the isotope for each element should be).
+Note that <code class="docutils literal notranslate"><span class="pre">0</span></code> is a valid isotope, so that cannot be used to match “any atom without isotope definition” (since the SMILES specification states that “the atom is assumed to have the naturally-occurring isotopic ratios”, but this is left to the appreciation of the implementation).</p>
+<p>Chirality may be specified using  <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> or <code class="docutils literal notranslate"><span class="pre">&#64;&#64;</span></code> to match any atom with the given configuration specified.
+This property may be followed by a <code class="docutils literal notranslate"><span class="pre">?</span></code>, which means “or unspecified”.
+To be matched by <code class="docutils literal notranslate"><span class="pre">[&#64;?]</span></code> or <code class="docutils literal notranslate"><span class="pre">[&#64;&#64;?]</span></code>, and atom needs at most 1 implicit hydrogen and a total of 4 connections (this is therefore equivalent to <code class="docutils literal notranslate"><span class="pre">[$([&#64;]),$([!&#64;;X4;H0,H1])]</span></code>, see below).
+For example, SMARTS <code class="docutils literal notranslate"><span class="pre">[&#64;?]</span></code> would match the carbon atom in SMILES <code class="docutils literal notranslate"><span class="pre">C(Cl)(Br)O</span></code> (which would not have been matched by <code class="docutils literal notranslate"><span class="pre">[&#64;]</span></code>), <code class="docutils literal notranslate"><span class="pre">[C&#64;H](Cl)(Br)O</span></code> but not <code class="docutils literal notranslate"><span class="pre">[C&#64;&#64;H](Cl)(Br)O</span></code>.</p>
+<p>Hydrogen count may be spectifed: <code class="docutils literal notranslate"><span class="pre">[H&lt;n&gt;]</span></code> is the total count of hydrogen (including implicit ones). Note that <code class="docutils literal notranslate"><span class="pre">[H]</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">[H1]</span></code> , to follow the SMILES definition.
+SMARTS adds a specific primitive to match only implicit hydrogens: <code class="docutils literal notranslate"><span class="pre">[h&lt;n&gt;]</span></code>: for example, the SMARTS <code class="docutils literal notranslate"><span class="pre">[h]</span></code> (which is equivalent to <code class="docutils literal notranslate"><span class="pre">[h1]</span></code>, by the same logic) would match any carbon atom in the SMILES <code class="docutils literal notranslate"><span class="pre">c1[nH]cccc1</span></code>, but not the nitrogen, while SMARTS <code class="docutils literal notranslate"><span class="pre">[H]</span></code> would match any atom in this SMILES.
+SMARTS  <code class="docutils literal notranslate"><span class="pre">[H0]</span></code> is valid, and matches atoms without hydrogen, while <code class="docutils literal notranslate"><span class="pre">[h0]</span></code> matches any atom without implicit hydrogen, thus including atom outside the organic subset.</p>
+<p>The charge is specified as usual: SMARTS <code class="docutils literal notranslate"><span class="pre">[+2]</span></code> matches any doubly positive atom.
+The <code class="docutils literal notranslate"><span class="pre">[++]</span></code> and <code class="docutils literal notranslate"><span class="pre">[--]</span></code> syntaxes are deprecated.
+On the other hand, SMARTS <code class="docutils literal notranslate"><span class="pre">[+0]</span></code> (or <code class="docutils literal notranslate"><span class="pre">[-0]</span></code>) is valid and matches atoms without a charge.</p>
+<p>Finally, the class may also be used, as in SMILES: SMARTS <code class="docutils literal notranslate"><span class="pre">[:2]</span></code> would match the second carbon in SMILES <code class="docutils literal notranslate"><span class="pre">[C:1]=[C:2]</span></code>.
+Since class 0 is set to any atom that does not specify a class (according to the SMILES specification), the SMARTS <code class="docutils literal notranslate"><span class="pre">[:0]</span></code> is nearly equivalent to “any atom without a class” (except if the SMILES contains an explicit class 0 definition).</p>
+</div>
+<div class="section" id="logical-expressions">
+<h5>Logical expressions<a class="headerlink" href="#logical-expressions" title="Permalink to this headline">¶</a></h5>
+<p>To match more than a single atomic property, logical operators can be used.
+The resulting logical expression must be written inside square brackets.</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Precedence</p></th>
+<th class="head"><p>Expression</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[!e]</span></code></p></td>
+<td><p>Not <code class="docutils literal notranslate"><span class="pre">e</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[e&amp;f]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">e</span></code> and <code class="docutils literal notranslate"><span class="pre">f</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[e,f]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">e</span></code> or <code class="docutils literal notranslate"><span class="pre">f</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[e;f]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">e</span></code> and <code class="docutils literal notranslate"><span class="pre">f</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>Expression are processed from left to right. Commutativity is assumed.
+Since there is no parentheses, the priority rules in the resulting expression is handled via precedence: if an expression is preceded by an operator and followed by another, the operator highest in the list (with the lowest precedence in that table) should be applied first.
+Hence,</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[!e,f]</span></code> means “(not <code class="docutils literal notranslate"><span class="pre">e</span></code>) or <code class="docutils literal notranslate"><span class="pre">f</span></code>” ;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[e&amp;f,g]</span></code> means “(<code class="docutils literal notranslate"><span class="pre">e</span></code> and <code class="docutils literal notranslate"><span class="pre">f</span></code>) or <code class="docutils literal notranslate"><span class="pre">g</span></code>”, notice the parentheses ;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[e;f,g]</span></code> means “<code class="docutils literal notranslate"><span class="pre">e</span></code> and (<code class="docutils literal notranslate"><span class="pre">f</span></code> or <code class="docutils literal notranslate"><span class="pre">g</span></code>)”, notice the usage of the other form of “and”.</p></li>
+</ul>
+<p>Note that the <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> operator is the default and may be omitted: SMARTS <code class="docutils literal notranslate"><span class="pre">[n&amp;H1]</span></code> and <code class="docutils literal notranslate"><span class="pre">[nH1]</span></code> are totally equivalent.</p>
+<p>Examples:</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>SMILES string</p></th>
+<th class="head"><p>SMARTS pattern</p></th>
+<th class="head"><p>Match?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">COCC(=O)O</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[O;X2]</span></code></p></td>
+<td><p>Yes (but not the oxygen of the ketone)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CC(CO)CC</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[C;!H3]</span></code></p></td>
+<td><p>Yes (but not the 2 terminal carbons)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="recursive-smarts">
+<h5>Recursive SMARTS<a class="headerlink" href="#recursive-smarts" title="Permalink to this headline">¶</a></h5>
+<p>The recursive SMARTS allows to define atomic environment.
+In is to be used inside square brackets (this is an atomic property), and have the form <code class="docutils literal notranslate"><span class="pre">$(expr)</span></code>, where <code class="docutils literal notranslate"><span class="pre">expr</span></code> is a valid SMARTS, starting by the atom of interest.
+Only the atom of interest (the first one) is matched by the expression.</p>
+<p>For example, the SMARTS <code class="docutils literal notranslate"><span class="pre">[R0;$(*aaaaO)]</span></code> would match an atom in <em>para</em> to the oxygen in an aromatic cycle, i.e. the methyl’s carbon in <code class="docutils literal notranslate"><span class="pre">c1c(O)ccc(C)c1</span></code> (the <a class="reference external" href="https://en.wikipedia.org/wiki/Cresol">4-methylcresol</a>).</p>
+</div>
+</div>
+<div class="section" id="bonds">
+<h4>Bonds<a class="headerlink" href="#bonds" title="Permalink to this headline">¶</a></h4>
+<p>Atomic properties can be combined together using bonds to match a group of atoms.</p>
+<div class="section" id="symbols-and-wildcards">
+<h5>Symbols and wildcards<a class="headerlink" href="#symbols-and-wildcards" title="Permalink to this headline">¶</a></h5>
+<p>Along with the already defined symbols for bonds used in SMILES, there is two wildcards bond defined:  <code class="docutils literal notranslate"><span class="pre">~</span></code>, which matches any bond and  <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>, which matches any bond contained in a ring.
+Note that a missing bond symbol does is interpreted as “single or aromatic”, therefore it is not equivalent to <code class="docutils literal notranslate"><span class="pre">~</span></code>.</p>
+<p>Examples:</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>SMILES string</p></th>
+<th class="head"><p>SMARTS pattern</p></th>
+<th class="head"><p>Match?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">c1(C)ccccc1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[#6]~[#6]</span></code></p></td>
+<td><p>Yes (all pair of bounded carbons, including the methyl one)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">c1(C)ccccc1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[#6]&#64;[#6]</span></code></p></td>
+<td><p>Yes (all pair of ring carbons, not the methyl one)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CC(=O)CC(=O)O</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[O]</span></code></p></td>
+<td><p>Yes (all the oxygens)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CC(=O)CC(=O)O</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[O;$(O(C=O))]</span></code></p></td>
+<td><p>Yes (but only the oxygen of the carboxylic acid)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CC(=O)CC(=O)O</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">C(=O)</span></code></p></td>
+<td><p>Yes (both <code class="docutils literal notranslate"><span class="pre">C(=O)</span></code> groups of atoms)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CC(=O)CC(=O)O</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[CX3](=O)[OX2H1]</span></code></p></td>
+<td><p>Yes (the <code class="docutils literal notranslate"><span class="pre">C(=O)O</span></code> group of atoms)</p></td>
+</tr>
+</tbody>
+</table>
+<p>Directional bonds (<code class="docutils literal notranslate"><span class="pre">/</span></code> and <code class="docutils literal notranslate"><span class="pre">\</span></code>) may be followed by a <code class="docutils literal notranslate"><span class="pre">?</span></code>, which means “or unspecified”.
+For example, SMARTS <code class="docutils literal notranslate"><span class="pre">O\?C=C\?*</span></code> (trans atoms) matches SMILES <code class="docutils literal notranslate"><span class="pre">OC=CCl</span></code> (which would not have been matched by SMARTS <code class="docutils literal notranslate"><span class="pre">O\?=C\*</span></code>), <code class="docutils literal notranslate"><span class="pre">C(/O)=C(\Cl)</span></code> and <code class="docutils literal notranslate"><span class="pre">C(\O)=C(/Cl)</span></code> (trans or unspecified molecules) but not <code class="docutils literal notranslate"><span class="pre">C(/O)=C(/Cl)</span></code> (cis molecule).
+Since it is only possible to determine the relative orientation of two group with respect to each other, the specification of directional bonds should go by pair, and SMARTS <code class="docutils literal notranslate"><span class="pre">C(\O)</span></code> is invalid.</p>
+<p>Note that dot bonds (<code class="docutils literal notranslate"><span class="pre">.</span></code>) allow to matches the next fragment anywhere in the SMILES string. Therefore, SMARTS <code class="docutils literal notranslate"><span class="pre">CC.[OH]</span></code> would match against SMILES strings <code class="docutils literal notranslate"><span class="pre">CC(O)=O</span></code> but also <code class="docutils literal notranslate"><span class="pre">CCOCO</span></code> (for the last <code class="docutils literal notranslate"><span class="pre">O</span></code>).</p>
+</div>
+<div class="section" id="logic-with-bonds">
+<h5>Logic with bonds<a class="headerlink" href="#logic-with-bonds" title="Permalink to this headline">¶</a></h5>
+<p>It is also possible to use logical operator on bond symbols, with the same symbols and rules as for the logical combination of atomic properties, except that the <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> is not implicit.</p>
+<p>For example,</p>
+<ul class="simple">
+<li><p>SMARTS <code class="docutils literal notranslate"><span class="pre">*&#64;;!:*</span></code> should be interpreted as “any pair of atom connected by (a ring AND not an aromatic) bond” ;</p></li>
+<li><p>SMARTS <code class="docutils literal notranslate"><span class="pre">[#6]=,#[#6]</span></code> should be interpreted as “any pair of carbon connected by (a double OR triple) bond”.</p></li>
+</ul>
+</div>
+<div class="section" id="order">
+<h5>Order<a class="headerlink" href="#order" title="Permalink to this headline">¶</a></h5>
+<p>Since the bonds are not directional and since the goal with SMARTS is to match a part of the tree that represent the SMILES string, order does not matter.
+For example, SMARTS <code class="docutils literal notranslate"><span class="pre">CBr</span></code> should match SMILES <code class="docutils literal notranslate"><span class="pre">C(O)Br</span></code>, <code class="docutils literal notranslate"><span class="pre">C(Br)O</span></code>, <code class="docutils literal notranslate"><span class="pre">Br(CO)</span></code> (so the order of the branches does not matter), <code class="docutils literal notranslate"><span class="pre">C(/Br)=C(\O)</span></code> (directional bond is a single bond) and <code class="docutils literal notranslate"><span class="pre">C1C2C1.Br2</span></code> (ring bonds does works).</p>
+</div>
+</div>
+<div class="section" id="simplifications">
+<h4>Simplifications<a class="headerlink" href="#simplifications" title="Permalink to this headline">¶</a></h4>
+<p>The goal here is not to get an <em>unique</em> SMARTS, but an efficient one.</p>
+<p>Note that since logical operators are used, a few basic rules holds:</p>
+<ol class="arabic simple">
+<li><p>Commutativity: <code class="docutils literal notranslate"><span class="pre">[a;b]</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">[b;a]</span></code> ;</p></li>
+<li><p>Distributivity: <code class="docutils literal notranslate"><span class="pre">[a&amp;b,a&amp;c]</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">[a;b,c]</span></code> (but notice the change of precedence) and <code class="docutils literal notranslate"><span class="pre">a,b;a,c</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">[a,b&amp;c]</span></code> (with a change of precedence as well) ;</p></li>
+<li><p>Absorption: <code class="docutils literal notranslate"><span class="pre">[a;a,b]</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">[a]</span></code> and <code class="docutils literal notranslate"><span class="pre">[a,a&amp;b]</span></code> is also equivalent to <code class="docutils literal notranslate"><span class="pre">[a]</span></code>.</p></li>
+</ol>
+<p>For efficiency consideration, and since SMARTS string should be processed left-to-right, also recall that:</p>
+<ul class="simple">
+<li><p>In a “and-expression”, if any expression is false, then the whole expression is false.
+Therefore, “uncommon” pattern should be placed <strong>first</strong>.</p></li>
+<li><p>In a “or-expression”, if any of the expression is true, then the whole expression is true.
+Therefore, “uncommon” pattern should be place <strong>last</strong>.</p></li>
+</ul>
+<p>“Uncommon” patterns means expressions that are rare in the considered SMILES strings.
+Order by increasing rarity (and a bit arbitrary) for atomic properties:</p>
+<ol class="arabic simple">
+<li><p>Simple wildcards (<code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span></code> or <code class="docutils literal notranslate"><span class="pre">A</span></code>) ;</p></li>
+<li><p>Carbons (for organic molecules) ;</p></li>
+<li><p>Connection wildcards (<code class="docutils literal notranslate"><span class="pre">[X&lt;n&gt;]</span></code>, <code class="docutils literal notranslate"><span class="pre">[D&lt;n&gt;]</span></code> or <code class="docutils literal notranslate"><span class="pre">[v&lt;n&gt;]</span></code>) ;</p></li>
+<li><p>Hydrogen counts (<code class="docutils literal notranslate"><span class="pre">H&lt;n&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">h&lt;n&gt;</span></code>) ;</p></li>
+<li><p>Ring wildcards (<code class="docutils literal notranslate"><span class="pre">[r&lt;n&gt;]</span></code>, <code class="docutils literal notranslate"><span class="pre">[x&lt;n&gt;]</span></code> or <code class="docutils literal notranslate"><span class="pre">[R&lt;n&gt;]</span></code>) ;</p></li>
+<li><p>Heteroatoms ;</p></li>
+<li><p>Chirality ;</p></li>
+<li><p>Charge ;</p></li>
+<li><p>Atom class ;</p></li>
+<li><p>Isotope.</p></li>
+</ol>
+<p>Order by increasing rarity (and a bit arbitrary) for bonds:</p>
+<ol class="arabic simple">
+<li><p>Bond wild card <code class="docutils literal notranslate"><span class="pre">~</span></code> ;</p></li>
+<li><p>Single bond ;</p></li>
+<li><p>Double (<code class="docutils literal notranslate"><span class="pre">=</span></code>) and aromatic (<code class="docutils literal notranslate"><span class="pre">:</span></code>) bonds ;</p></li>
+<li><p>Ring bond wildcard <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> ;</p></li>
+<li><p>Directional bonds (<code class="docutils literal notranslate"><span class="pre">/</span></code>, <code class="docutils literal notranslate"><span class="pre">\</span></code>) ;</p></li>
+<li><p>Triple (<code class="docutils literal notranslate"><span class="pre">#</span></code>) or quadruple bonds (<code class="docutils literal notranslate"><span class="pre">#</span></code>).</p></li>
+</ol>
+<p>When ordering a chain, a longer sub-pattern should be considered less common.</p>
+</div>
+<div class="section" id="possible-extensions">
+<h4>Possible extensions<a class="headerlink" href="#possible-extensions" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="component-level-grouping">
+<h5>Component-level grouping<a class="headerlink" href="#component-level-grouping" title="Permalink to this headline">¶</a></h5>
+<p>In SMILES, a disconnected bond (symbol <code class="docutils literal notranslate"><span class="pre">'.'</span></code>) is used to separate two components.</p>
+<p>By default, a SMARTS pattern matches anywhere in the SMILES string.</p>
+<p>In the Daylight implementation, to restrict this behavior, the pattern can be surrounded by (so-called “zero-level”) parenthesis, which ensure that the whole pattern is matched within a single component of the target.
+Two (or) more of these expression may be combined, but each pattern surrounded by parenthesis must match <strong>different</strong> components.</p>
+<p>For example,</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>SMILES string</p></th>
+<th class="head"><p>SMARTS pattern</p></th>
+<th class="head"><p>Match?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CC(=O)O</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">C=O</span></code></p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CC(=O)O</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(C=O)</span></code></p></td>
+<td><p>Yes (it matches in the same component)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CC(=O)O</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(C=O).C</span></code></p></td>
+<td><p>Yes (the second carbon can be matched everywhere)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CC(=O)O</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(C=O).(C)</span></code></p></td>
+<td><p><strong>No</strong> (it must be in two different compounds)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CC(=O)O.O=C(O)C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(C=O).(C)</span></code></p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CC(=O)O.O=C(O)C</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(C=O).(C).C</span></code></p></td>
+<td><p>Yes (the third carbon can be matched anywhere)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="identifier">
+<h5>Identifier<a class="headerlink" href="#identifier" title="Permalink to this headline">¶</a></h5>
+<p>For some purpose (for a SMILES string constructed from a coordinate input file, and in relation with it), it would be interesting to match a given atom id.
+The <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> is already reserved by possible extention on the SMILES side (though never implemented) and may be confused with the logical AND anyway, so I propose to use the <code class="docutils literal notranslate"><span class="pre">'~'</span></code> symbol (which, inside brackets, have no meaning).
+So <code class="docutils literal notranslate"><span class="pre">[~15]</span></code> would match the 15th atom of the structure.</p>
+</div>
+<div class="section" id="hybridization">
+<h5>Hybridization<a class="headerlink" href="#hybridization" title="Permalink to this headline">¶</a></h5>
+<p>The OpenEye implementation allows to match specific hybridization by using <code class="docutils literal notranslate"><span class="pre">^&lt;n&gt;</span></code>.
+It is a great functionality, but requires to compute the valence (and number of lone pairs) of a given atom (with a given charge), and there is a multitude of possible models for that, since valence <a class="reference external" href="https://nextmovesoftware.com/blog/2013/02/27/explicit-and-implicit-hydrogens-taking-liberties-with-valence/">is a difficult concept</a>.
+For example, there is an so-called MDL valence model implemented in <a class="reference external" href="https://docs.eyesopen.com/toolkits/cpp/oechemtk/valence.html#subsection-valence-openeye-hydrogen">OEChem</a> and <a class="reference external" href="https://github.com/openbabel/openbabel/blob/master/src/formats/mdlvalence.h">Babel</a> (but with sparse documentation).</p>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="sources">
+<h2>Sources<a class="headerlink" href="#sources" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Daylight SMARTS’s <a class="reference external" href="http://www.daylight.com/dayhtml/doc/theory/theory.smarts.html">theory page</a>, <a class="reference external" href="http://www.daylight.com/dayhtml_tutorials/languages/smarts/index.htm">tutorial page</a> and <a class="reference external" href="http://www.daylight.com/dayhtml_tutorials/languages/smarts/smarts_examples.html">example page</a> ;</p></li>
+<li><p><a class="reference external" href="https://docs.eyesopen.com/toolkits/cpp/oechemtk/SMARTS.html">OpenEye SMARTS’s page</a> and their (in)famous <a class="reference external" href="https://docs.eyesopen.com/toolkits/python/oechemtk/ring.html#smallest-set-of-smallest-rings-sssr-considered-harmful">“SSSR considered harmful” warning</a>;</p></li>
+<li><p>The <a class="reference external" href="https://en.wikipedia.org/wiki/Smiles_arbitrary_target_specification">SMARTS Wikipedia page</a>.</p></li>
+<li><p>A page to test the SMARTS pattern and get a representation: <a class="reference external" href="https://smartsview.zbh.uni-hamburg.de/">SMARTSviewer</a> (you may need to accept a broken certificate, but it worth it).</p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing <code class="docutils literal notranslate"><span class="pre">osmipy</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="about-smiles.html">SMILES</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">WIP: SMARTS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#theory">Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sources">Sources</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/smarts.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Pierre Beaujean.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/smarts.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

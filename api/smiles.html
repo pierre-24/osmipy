@@ -1,0 +1,288 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>SMILES (osmipy.smiles) &#8212; osmipy 0.1a documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SMILES AST elements (osmipy.smiles_ast)" href="smiles_ast.html" />
+    <link rel="prev" title="Lexer (osmipy.lexer)" href="lexer.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-osmipy.smiles">
+<span id="smiles-osmipy-smiles"></span><h1>SMILES (<code class="docutils literal notranslate"><span class="pre">osmipy.smiles</span></code>)<a class="headerlink" href="#module-osmipy.smiles" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="osmipy.smiles.AtomIdCheckAndUpdate">
+<em class="property">class </em><code class="descclassname">osmipy.smiles.</code><code class="descname">AtomIdCheckAndUpdate</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.AtomIdCheckAndUpdate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visitor that</p>
+<p>Keeps a dictionary of the atoms id, <code class="docutils literal notranslate"><span class="pre">atom_ids</span></code>, and check that they are all uniques.
+In other words,  it does the job of the parser for nodes that may have been constructed from scratch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.Chain" title="osmipy.smiles_ast.Chain"><em>Chain</em></a>) – the node</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="osmipy.smiles.AtomIdCheckAndUpdate.update">
+<code class="descname">update</code><span class="sig-paren">(</span><em>fragment</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.AtomIdCheckAndUpdate.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the validator with a new fragment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fragment</strong> (<a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.Chain" title="osmipy.smiles_ast.Chain"><em>Chain</em></a>) – the new fragment</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles.AtomIdCheckAndUpdate.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>shift_id=0</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.AtomIdCheckAndUpdate.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the AST</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>shift_id</strong> (<em>int</em>) – shift all atom id</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles.AtomIdCheckAndUpdate.visit_atom">
+<code class="descname">visit_atom</code><span class="sig-paren">(</span><em>node</em>, <em>shift_id=0</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.AtomIdCheckAndUpdate.visit_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just update the list of ids</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> (<em>qcip_tools.smiles.Atom</em>) – node</p></li>
+<li><p><strong>shift_id</strong> (<em>int</em>) – shift all atom id</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="osmipy.smiles.Interpreter">
+<em class="property">class </em><code class="descclassname">osmipy.smiles.</code><code class="descname">Interpreter</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.Interpreter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visitor that gives a string representation of a smiles AST</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.Chain" title="osmipy.smiles_ast.Chain"><em>Chain</em></a>) – the node</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="osmipy.smiles.Interpreter.visit_atom">
+<code class="descname">visit_atom</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.Interpreter.visit_atom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<em>qcip_tools.smiles.Atom</em>) – node</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles.Interpreter.visit_bond">
+<code class="descname">visit_bond</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.Interpreter.visit_bond" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.Bond" title="osmipy.smiles_ast.Bond"><em>Bond</em></a>) – node</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles.Interpreter.visit_branch">
+<code class="descname">visit_branch</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.Interpreter.visit_branch" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.Branch" title="osmipy.smiles_ast.Branch"><em>Branch</em></a>) – node</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles.Interpreter.visit_branchedatom">
+<code class="descname">visit_branchedatom</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.Interpreter.visit_branchedatom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.BranchedAtom" title="osmipy.smiles_ast.BranchedAtom"><em>BranchedAtom</em></a>) – node</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles.Interpreter.visit_chain">
+<code class="descname">visit_chain</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.Interpreter.visit_chain" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.Chain" title="osmipy.smiles_ast.Chain"><em>Chain</em></a>) – node</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles.Interpreter.visit_ringbond">
+<code class="descname">visit_ringbond</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.Interpreter.visit_ringbond" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.RingBond" title="osmipy.smiles_ast.RingBond"><em>RingBond</em></a>) – node</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="osmipy.smiles.SMILES">
+<em class="property">class </em><code class="descclassname">osmipy.smiles.</code><code class="descname">SMILES</code><span class="sig-paren">(</span><em>input_=''</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.SMILES" title="Permalink to this definition">¶</a></dt>
+<dd><p>SMILES object</p>
+<p>This object is immutable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input</strong> (<em>Chain|str</em>) – input</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="osmipy.smiles.SMILES.add_fragment">
+<code class="descname">add_fragment</code><span class="sig-paren">(</span><em>other</em>, <em>validate=True</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.SMILES.add_fragment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add another fragment at the end using a DOT bond</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> (<em>SMILES|Chain</em>) – other smile</p></li>
+<li><p><strong>validate</strong> (<em>bool</em>) – (re)validate the new fragment (otherwise, <code class="docutils literal notranslate"><span class="pre">atom_ids</span></code> is not updated!)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#osmipy.smiles.SMILES" title="osmipy.smiles.SMILES">SMILES</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles.SMILES.get_atom">
+<code class="descname">get_atom</code><span class="sig-paren">(</span><em>atom_id</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles.SMILES.get_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the atom corresponding to the given id</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atom_id</strong> (<em>int</em>) – the id</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>qcip_tools.smiles.Atom</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="osmipy.smiles.UnicityException">
+<em class="property">exception </em><code class="descclassname">osmipy.smiles.</code><code class="descname">UnicityException</code><a class="headerlink" href="#osmipy.smiles.UnicityException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installing <code class="docutils literal notranslate"><span class="pre">osmipy</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about-smiles.html">SMILES</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="lexer.html">Lexer (<code class="docutils literal notranslate"><span class="pre">osmipy.lexer</span></code>)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">SMILES (<code class="docutils literal notranslate"><span class="pre">osmipy.smiles</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles_ast.html">SMILES AST elements (<code class="docutils literal notranslate"><span class="pre">osmipy.smiles_ast</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles_parser.html">SMILES Parser (<code class="docutils literal notranslate"><span class="pre">osmipy.smiles_parser</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tokens.html">Tokens (<code class="docutils literal notranslate"><span class="pre">osmipy.tokens</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor.html">Visitor (<code class="docutils literal notranslate"><span class="pre">osmipy.visitor</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../smarts.html">WIP: SMARTS</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/smiles.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Pierre Beaujean.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/api/smiles.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

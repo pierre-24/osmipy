@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Contributing &#8212; osmipy 0.1a documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="WIP: SMARTS" href="smarts.html" />
+    <link rel="prev" title="Visitor (osmipy.visitor)" href="api/visitor.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="contributing">
+<h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
+<p>You first need to <a class="reference external" href="https://pierre-24.github.io/osmipy/install.html">install</a> if you wan to contribute to the code.</p>
+<div class="section" id="design-rules">
+<h2>Design rules<a class="headerlink" href="#design-rules" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>The code is written in Python 3, and follows the (in)famous <a class="reference external" href="http://legacy.python.org/dev/peps/pep-0008/">PEP-8</a>. You can check it by running <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">lint</span></code>, which launch the <code class="docutils literal notranslate"><span class="pre">flake</span></code> utility.</p></li>
+<li><p>Codes and comments are written in english.</p></li>
+<li><p>The code is documented using docstrings and Sphinx. The docstrings must contains the basic description of the function, as well as a description of the paramters (with the <code class="docutils literal notranslate"><span class="pre">:type</span></code> instruction, please).</p></li>
+<li><p>The code is tested. You can launch the test series by using <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span></code>.
+Every functionality should be provided with at least one unit test.
+Every script should be provided with at least one unit test.
+You may need test files to do so, but try to make them small (say, don’t use d-aug-cc-pVDZ while STO-3G could do the job).</p></li>
+<li><p>The package is documented. You can generate this documentation by using <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">doc</span></code>. Non-basic stuffs should be explained in this documentation. Don’t forget to cite some articles or website if needed.</p></li>
+<li><p>Before reimplementing something, please consider if there is no library that already exists to do the job.</p></li>
+</ul>
+</div>
+<div class="section" id="workflow">
+<h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h2>
+<p>Adapted from the (in)famous <a class="reference external" href="http://nvie.com/posts/a-successful-git-branching-model/">Git flow</a>.</p>
+<ul class="simple">
+<li><p>Development is mad in <code class="docutils literal notranslate"><span class="pre">dev</span></code> branch, while <code class="docutils literal notranslate"><span class="pre">master</span></code> contains the production version (and is protected from edition).</p></li>
+<li><p>Functionality are added through merge request (MR) in the <code class="docutils literal notranslate"><span class="pre">dev</span></code> branch. Do not work in <code class="docutils literal notranslate"><span class="pre">dev</span></code> directly, but create a new branch (<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">-b</span> <span class="pre">my_branch</span> <span class="pre">origin/dev</span></code>).</p></li>
+<li><p>Theses merge requests should be unitary, and include unit test(s) and documentation if needed. The test suite must succeed for the merge request to be accepted.</p></li>
+<li><p>At some (random) points, <code class="docutils literal notranslate"><span class="pre">dev</span></code> will be merged by the maintainer into <code class="docutils literal notranslate"><span class="pre">master</span></code> to create a new version, with a tag of the form <code class="docutils literal notranslate"><span class="pre">release-vXX</span></code>.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since <code class="docutils literal notranslate"><span class="pre">osmipy</span></code> rely on <a class="reference external" href="https://pipenv.readthedocs.io">pipenv</a>, the workflow is currently the following :</p>
+<ol class="arabic simple">
+<li><p>Normal installation use <code class="docutils literal notranslate"><span class="pre">pipenv</span> <span class="pre">install</span> <span class="pre">--dev</span> <span class="pre">--ignore-pipfile</span></code> (<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">init</span></code>)</p></li>
+<li><p>To update the dependencies from upstream, <code class="docutils literal notranslate"><span class="pre">pipenv</span> <span class="pre">sync</span> <span class="pre">--dev</span></code>  (<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">sync</span></code>).</p></li>
+<li><p>To update the <code class="docutils literal notranslate"><span class="pre">Pipfile.lock</span></code> (and thus the actual version of the dependencies), a <strong>specific</strong> pull request is done, with the result of <code class="docutils literal notranslate"><span class="pre">pipenv</span> <span class="pre">lock</span></code> (followed by <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">sync</span></code> on the dev’s machine).</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="licence">
+<h2>Licence<a class="headerlink" href="#licence" title="Permalink to this headline">¶</a></h2>
+<p>This code is developed by me, <a class="reference external" href="https://pierrebeaujean.net">Pierre Beaujean</a>, but is placed under <a class="reference external" href="https://choosealicense.com/licenses/mit/">MIT LICENCE</a>.
+Of course, if you contribute, you will be added to this list ;)</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing <code class="docutils literal notranslate"><span class="pre">osmipy</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="about-smiles.html">SMILES</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#design-rules">Design rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#workflow">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#licence">Licence</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="smarts.html">WIP: SMARTS</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/contributing.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Pierre Beaujean.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/contributing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

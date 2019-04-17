@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>SMILES Parser (osmipy.smiles_parser) &#8212; osmipy 0.1a documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tokens (osmipy.tokens)" href="tokens.html" />
+    <link rel="prev" title="SMILES AST elements (osmipy.smiles_ast)" href="smiles_ast.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-osmipy.smiles_parser">
+<span id="smiles-parser-osmipy-smiles-parser"></span><h1>SMILES Parser (<code class="docutils literal notranslate"><span class="pre">osmipy.smiles_parser</span></code>)<a class="headerlink" href="#module-osmipy.smiles_parser" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="osmipy.smiles_parser.Parser">
+<em class="property">class </em><code class="descclassname">osmipy.smiles_parser.</code><code class="descname">Parser</code><span class="sig-paren">(</span><em>lexer</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_parser.Parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parser (generate and AST from the tokens).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>lexer</strong> (<a class="reference internal" href="lexer.html#osmipy.lexer.Lexer" title="osmipy.lexer.Lexer"><em>Lexer</em></a>) – The lexer</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="osmipy.smiles_parser.Parser.atom">
+<code class="descname">atom</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_parser.Parser.atom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>qcip_tools.smiles.Atom</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_parser.Parser.bracket_atom">
+<code class="descname">bracket_atom</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_parser.Parser.bracket_atom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>qcip_tools.smiles.Atom</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_parser.Parser.branch">
+<code class="descname">branch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_parser.Parser.branch" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.Branch" title="osmipy.smiles_ast.Branch">osmipy.smiles_ast.Branch</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_parser.Parser.branched_atom">
+<code class="descname">branched_atom</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_parser.Parser.branched_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Only</strong> matches</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>atom ring_id*
+</pre></div>
+</div>
+<p>to avoid the need of backtracking.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.BranchedAtom" title="osmipy.smiles_ast.BranchedAtom">osmipy.smiles_ast.BranchedAtom</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_parser.Parser.chain">
+<code class="descname">chain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_parser.Parser.chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actually matches</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>branched_atom ring_bond* branch* ((bond | DOT)? chain)?
+</pre></div>
+</div>
+<p>to avoid the need of backtracking due to bond before <code class="docutils literal notranslate"><span class="pre">ring_id</span></code>.
+<code class="docutils literal notranslate"><span class="pre">Branch</span></code> and <code class="docutils literal notranslate"><span class="pre">RingBond</span></code> are added to <code class="docutils literal notranslate"><span class="pre">BranchedAtom</span></code>, thus fulfilling the grammar rules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.Chain" title="osmipy.smiles_ast.Chain">osmipy.smiles_ast.Chain</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_parser.Parser.eat">
+<code class="descname">eat</code><span class="sig-paren">(</span><em>token_type</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_parser.Parser.eat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Consume the token if of the right type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>token_type</strong> (<em>str</em>) – the token type</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="#osmipy.smiles_parser.ParserException" title="osmipy.smiles_parser.ParserException"><strong>ParserException</strong></a> – if not of the correct type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_parser.Parser.next">
+<code class="descname">next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_parser.Parser.next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the next token</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_parser.Parser.ring_bond">
+<code class="descname">ring_bond</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_parser.Parser.ring_bond" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.RingBond" title="osmipy.smiles_ast.RingBond">osmipy.smiles_ast.RingBond</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_parser.Parser.smiles">
+<code class="descname">smiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_parser.Parser.smiles" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="smiles_ast.html#osmipy.smiles_ast.Chain" title="osmipy.smiles_ast.Chain">Chain</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="osmipy.smiles_parser.ParserException">
+<em class="property">exception </em><code class="descclassname">osmipy.smiles_parser.</code><code class="descname">ParserException</code><span class="sig-paren">(</span><em>token</em>, <em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_parser.ParserException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installing <code class="docutils literal notranslate"><span class="pre">osmipy</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about-smiles.html">SMILES</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="lexer.html">Lexer (<code class="docutils literal notranslate"><span class="pre">osmipy.lexer</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles.html">SMILES (<code class="docutils literal notranslate"><span class="pre">osmipy.smiles</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles_ast.html">SMILES AST elements (<code class="docutils literal notranslate"><span class="pre">osmipy.smiles_ast</span></code>)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">SMILES Parser (<code class="docutils literal notranslate"><span class="pre">osmipy.smiles_parser</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tokens.html">Tokens (<code class="docutils literal notranslate"><span class="pre">osmipy.tokens</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor.html">Visitor (<code class="docutils literal notranslate"><span class="pre">osmipy.visitor</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../smarts.html">WIP: SMARTS</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/smiles_parser.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Pierre Beaujean.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/api/smiles_parser.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

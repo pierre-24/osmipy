@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>SMILES AST elements (osmipy.smiles_ast) &#8212; osmipy 0.1a documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SMILES Parser (osmipy.smiles_parser)" href="smiles_parser.html" />
+    <link rel="prev" title="SMILES (osmipy.smiles)" href="smiles.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-osmipy.smiles_ast">
+<span id="smiles-ast-elements-osmipy-smiles-ast"></span><h1>SMILES AST elements (<code class="docutils literal notranslate"><span class="pre">osmipy.smiles_ast</span></code>)<a class="headerlink" href="#module-osmipy.smiles_ast" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="osmipy.smiles_ast.AST">
+<em class="property">class </em><code class="descclassname">osmipy.smiles_ast.</code><code class="descname">AST</code><a class="headerlink" href="#osmipy.smiles_ast.AST" title="Permalink to this definition">¶</a></dt>
+<dd><p>AST element</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="osmipy.smiles_ast.Atom">
+<em class="property">class </em><code class="descclassname">osmipy.smiles_ast.</code><code class="descname">Atom</code><span class="sig-paren">(</span><em>symbol</em>, <em>isotope=0</em>, <em>chirality=None</em>, <em>hcount=0</em>, <em>charge=0</em>, <em>klass=0</em>, <em>atom_id=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.Atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>AST element: Atom (<code class="docutils literal notranslate"><span class="pre">atom</span></code>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symbol</strong> (<em>str</em>) – atomic symbol</p></li>
+<li><p><strong>isotope</strong> (<em>int</em>) – isotope</p></li>
+<li><p><strong>chirality</strong> (<em>str</em>) – chirality symbol</p></li>
+<li><p><strong>hcount</strong> (<em>int</em>) – hydrogen count</p></li>
+<li><p><strong>charge</strong> (<em>int</em>) – charge</p></li>
+<li><p><strong>klass</strong> (<em>int</em>) – class</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="osmipy.smiles_ast.Atom.is_aromatic">
+<code class="descname">is_aromatic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.Atom.is_aromatic" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_ast.Atom.is_bracketed">
+<code class="descname">is_bracketed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.Atom.is_bracketed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Should this atom be bracketed?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_ast.Atom.is_organic">
+<code class="descname">is_organic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.Atom.is_organic" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="osmipy.smiles_ast.Bond">
+<em class="property">class </em><code class="descclassname">osmipy.smiles_ast.</code><code class="descname">Bond</code><span class="sig-paren">(</span><em>symbol=None</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.Bond" title="Permalink to this definition">¶</a></dt>
+<dd><p>AST element: Bond (<code class="docutils literal notranslate"><span class="pre">bond</span> <span class="pre">|</span> <span class="pre">DOT</span></code>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>symbol</strong> (<em>str</em>) – bond symbol</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="osmipy.smiles_ast.Branch">
+<em class="property">class </em><code class="descclassname">osmipy.smiles_ast.</code><code class="descname">Branch</code><span class="sig-paren">(</span><em>chain</em>, <em>bond=None</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.Branch" title="Permalink to this definition">¶</a></dt>
+<dd><p>AST element: Branch (<code class="docutils literal notranslate"><span class="pre">branch</span></code>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>chain</strong> (<a class="reference internal" href="#osmipy.smiles_ast.Chain" title="osmipy.smiles_ast.Chain"><em>Chain</em></a>) – chain</p></li>
+<li><p><strong>bond</strong> (<a class="reference internal" href="#osmipy.smiles_ast.Bond" title="osmipy.smiles_ast.Bond"><em>Bond</em></a>) – bond</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="osmipy.smiles_ast.BranchedAtom">
+<em class="property">class </em><code class="descclassname">osmipy.smiles_ast.</code><code class="descname">BranchedAtom</code><span class="sig-paren">(</span><em>atom</em>, <em>ring_bonds=None</em>, <em>branches=None</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.BranchedAtom" title="Permalink to this definition">¶</a></dt>
+<dd><p>AST element: BranchedAtom (<code class="docutils literal notranslate"><span class="pre">branched_atom</span></code>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom</strong> (<em>qcip_tools.smiles.Atom</em>) – atom</p></li>
+<li><p><strong>ring_bonds</strong> (<em>list of RingBond</em>) – ring_bonds</p></li>
+<li><p><strong>branches</strong> (<em>list of Branch</em>) – branches</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="osmipy.smiles_ast.BranchedAtom.implicit_hcount">
+<code class="descname">implicit_hcount</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.BranchedAtom.implicit_hcount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the implicit hydrogen count by making the difference between the sum of all bond orders and
+the “normal valence” of the atom.</p>
+<p><strong>Only for the atom in the “organic” subset, not bracketed and validated!</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_ast.BranchedAtom.is_aromatic">
+<code class="descname">is_aromatic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.BranchedAtom.is_aromatic" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_ast.BranchedAtom.is_organic">
+<code class="descname">is_organic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.BranchedAtom.is_organic" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="osmipy.smiles_ast.BranchedAtom.number_of_neighbours">
+<code class="descname">number_of_neighbours</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.BranchedAtom.number_of_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of neighbours that the atom have</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="osmipy.smiles_ast.Chain">
+<em class="property">class </em><code class="descclassname">osmipy.smiles_ast.</code><code class="descname">Chain</code><span class="sig-paren">(</span><em>left</em>, <em>right=None</em>, <em>bond=None</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.Chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>AST element: Chain (<code class="docutils literal notranslate"><span class="pre">chain</span></code>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> (<a class="reference internal" href="#osmipy.smiles_ast.BranchedAtom" title="osmipy.smiles_ast.BranchedAtom"><em>BranchedAtom</em></a>) – left value</p></li>
+<li><p><strong>right</strong> (<a class="reference internal" href="#osmipy.smiles_ast.Chain" title="osmipy.smiles_ast.Chain"><em>Chain</em></a>) – right value</p></li>
+<li><p><strong>bond</strong> (<a class="reference internal" href="#osmipy.smiles_ast.Bond" title="osmipy.smiles_ast.Bond"><em>Bond</em></a>) – bond</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="osmipy.smiles_ast.RingBond">
+<em class="property">class </em><code class="descclassname">osmipy.smiles_ast.</code><code class="descname">RingBond</code><span class="sig-paren">(</span><em>ring_id</em>, <em>bond=None</em>, <em>target=None</em><span class="sig-paren">)</span><a class="headerlink" href="#osmipy.smiles_ast.RingBond" title="Permalink to this definition">¶</a></dt>
+<dd><p>AST element: RingBond (<code class="docutils literal notranslate"><span class="pre">(bond</span> <span class="pre">|</span> <span class="pre">DOT)</span> <span class="pre">?</span> <span class="pre">ring_id</span></code>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ring_id</strong> (<em>int</em>) – atom identifier (&lt;100)</p></li>
+<li><p><strong>bond</strong> (<a class="reference internal" href="#osmipy.smiles_ast.Bond" title="osmipy.smiles_ast.Bond"><em>Bond</em></a>) – bond</p></li>
+<li><p><strong>target</strong> (<a class="reference internal" href="#osmipy.smiles_ast.BranchedAtom" title="osmipy.smiles_ast.BranchedAtom"><em>BranchedAtom</em></a>) – the other atom</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installing <code class="docutils literal notranslate"><span class="pre">osmipy</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about-smiles.html">SMILES</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="lexer.html">Lexer (<code class="docutils literal notranslate"><span class="pre">osmipy.lexer</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles.html">SMILES (<code class="docutils literal notranslate"><span class="pre">osmipy.smiles</span></code>)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">SMILES AST elements (<code class="docutils literal notranslate"><span class="pre">osmipy.smiles_ast</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles_parser.html">SMILES Parser (<code class="docutils literal notranslate"><span class="pre">osmipy.smiles_parser</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tokens.html">Tokens (<code class="docutils literal notranslate"><span class="pre">osmipy.tokens</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor.html">Visitor (<code class="docutils literal notranslate"><span class="pre">osmipy.visitor</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../smarts.html">WIP: SMARTS</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/smiles_ast.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Pierre Beaujean.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/api/smiles_ast.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

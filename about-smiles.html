@@ -1,0 +1,261 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>SMILES &#8212; osmipy 0.1a documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API documentation" href="api.html" />
+    <link rel="prev" title="Installing osmipy" href="install.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="smiles">
+<h1>SMILES<a class="headerlink" href="#smiles" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="about-smiles">
+<h2>About SMILES<a class="headerlink" href="#about-smiles" title="Permalink to this headline">¶</a></h2>
+<p>SMILES (simplified molecular input entry system) is a “chemical notation system designed for modern chemical information processing” invented by Weininger (see sources) and then developed by Daylight Chemical Information Systems (simply referred as “Daylight” is most websites).
+There is also <a class="reference external" href="http://opensmiles.org/opensmiles.html">an open standard</a> specification that we will follow here.</p>
+<p>A SMILES string is basically a linear representation of a molecule created from a traversal of the molecular graph (in its simplest version, a labeled graph whose vertices are the atoms and edges are the chemical bonds).
+This is actually equivalent to the construction of a <a class="reference external" href="https://en.wikipedia.org/wiki/Spanning_tree">spanning tree</a>.
+Therefore, many SMILES are possible (including very peculiar ones) for a given molecule (depending, basically on the starting vertex, and on the edges taken during the visit).</p>
+<p>To handle this, people propose canonicalization schemes, that consists in two parts:</p>
+<ol class="arabic simple">
+<li><p>Renumber the atoms (the vertices of the graph) based on some invariant(s), in a way that is (normally) unique ;</p></li>
+<li><p>Starts by the atom with the lowest number out of the previous step, and perform some branching decision during the exploration (once again, in a <em>unique</em> way).</p></li>
+</ol>
+<p>The critical part is actually the first one.
+For example, the algorithm developed by Weininger in 1989 (CANGEN) fails for some structures (see Neglur <em>et al.</em> in references).</p>
+</div>
+<div class="section" id="about-stereochemistry">
+<h2>About “stereochemistry”<a class="headerlink" href="#about-stereochemistry" title="Permalink to this headline">¶</a></h2>
+<p><strong>TL;DR:</strong>  SMILES is not about absolute stereochemistry (in the CIP sense), it is local stereochemistry.</p>
+<div class="section" id="background">
+<h3>Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h3>
+<p>Implementation of the stereo perception is directly inspired by <a class="reference external" href="http://openbabel.org/dev-api/classOpenBabel_1_1OBStereoBase.shtml">OpenBabel implementation of stereoconcepts</a>, which was implemented in the same spirit as SMILES.
+In SMILES (and therefore here), one only cares about <strong>local</strong> stereochemistry: even though a carbon may not be asymetric (in the CIP sense), it may present a <strong>local</strong> configuration.
+There is therefore <strong>no</strong> correspondence between the configuration in a SMILE string and the absolute configuration (although if the vertex are given in the correct order in the CIP way, that corresponds to R/S stereo configuration for tetrahedral carbons).
+One only cares about the correspondance between the vertices, given in a certain order, and the “reality” of the structure.</p>
+</div>
+<div class="section" id="in-practice">
+<h3>In practice<a class="headerlink" href="#in-practice" title="Permalink to this headline">¶</a></h3>
+<p>Stereochemistry is defined for any set of 4 atoms that contains at most 1 hydrogen (non-planar) or 2 (planar).
+The implementation should recognize at least two kind of stereochemistry:</p>
+<div class="figure align-center">
+<img alt="_images/stereo.png" src="_images/stereo.png" />
+</div>
+<ul class="simple">
+<li><p>Planar stereo config (cis/trans for alcenes, square planar) ;</p></li>
+<li><p>Non planar stereo config (clockwise/anticlockwise for “asymetric” carbons).</p></li>
+</ul>
+<p>The purpose of this stereo implementation is to match the set of indices <em>a, b, c and d</em> (which may be given in any order) with the set <em>0, 1, 2 and 3</em>.
+The value of the stereo object is the order in which the <em>a, b, c and d</em> indices must be read to match <em>0, 1, 2 and 3</em>.</p>
+<p>For the non planar stereo configuration, there is two possible values: clockwise (<code class="docutils literal notranslate"><span class="pre">&#64;&#64;</span></code>) and counterclockwise (<code class="docutils literal notranslate"><span class="pre">&#64;</span></code>).
+For the planar stereo configuration, there is three possible values: <code class="docutils literal notranslate"><span class="pre">U</span></code>, <code class="docutils literal notranslate"><span class="pre">Z</span></code> and <code class="docutils literal notranslate"><span class="pre">4</span></code>.</p>
+<div class="figure align-center" id="id3">
+<img alt="_images/stereo_vals.png" src="_images/stereo_vals.png" />
+<p class="caption"><span class="caption-text">The question is always “how to read <code class="docutils literal notranslate"><span class="pre">(a,b,c,d)</span></code> so that the sequence matches <code class="docutils literal notranslate"><span class="pre">(0,1,2,3)</span></code>”.
+To do so, the first part is to set a <code class="docutils literal notranslate"><span class="pre">start</span></code> atom (the others are the <code class="docutils literal notranslate"><span class="pre">refs</span></code> in the implementation) and set the corresponding <code class="docutils literal notranslate"><span class="pre">value</span></code>.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+</div>
+<div class="section" id="implementation-details">
+<h2>Implementation details<a class="headerlink" href="#implementation-details" title="Permalink to this headline">¶</a></h2>
+<p>The actual implementation uses the classic approach of a <a class="reference external" href="https://en.wikipedia.org/wiki/Top-down_parsing">top-down parser</a> (more specifically, a kind of <a class="reference external" href="https://en.wikipedia.org/wiki/Recursive_descent_parser">recursive descent parser</a>), and the code is greatly inspired by this <a class="reference external" href="https://ruslanspivak.com/lsbasi-part1/">wonderful series of blog posts</a> by Ruslan Spivak on parsing and interpreting source code.
+So,</p>
+<ol class="arabic simple">
+<li><p>Lexical analysis using the <a class="reference external" href="api/lexer.html#osmipy.lexer.Lexer">Lexer class</a>, which cuts the input string into tokens (<a class="reference external" href="api/tokens.html#osmipy.tokens.Token">Token class</a>) ;</p></li>
+<li><p>Syntaxic analysis using the <a class="reference external" href="api/parser.html#osmipy.parser.Parser">Parser class</a>, which turns the stream of tokens into an abstract syntax tree (<a class="reference external" href="api/smiles_ast.html#osmipy.smiles_ast.AST">AST class</a> and children).</p></li>
+<li><p>On top of that, the <a class="reference external" href="api/smiles.html#osmipy.smiles.SMILES">SMILES class</a> generate the AST from a string and validates it.
+For the other way around, the interpretation is done with the <a class="reference external" href="api/smiles.html#osmipy.smiles.Interpreter">Interpreter class</a>, which turns an AST into a SMILES string (still implementing the visitor pattern).</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Due to so called ring bonds (<code class="docutils literal notranslate"><span class="pre">ring_bond</span></code>), the parser would need backtracking to differentiate it with chain.
+This is avoided by a (rather complicated) different implementation of <code class="docutils literal notranslate"><span class="pre">chain()</span></code> and <code class="docutils literal notranslate"><span class="pre">branched_atom()</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>branched_atom&#39; := atom ring_id* ;
+chain&#39; := branched_atom&#39; ring_bond* branch* ((bond | DOT)? chain&#39;)? ;
+</pre></div>
+</div>
+</div>
+<p>The relation between the AST objects is given by the following figure:</p>
+<div class="figure align-center" id="id4">
+<img alt="_images/smiles_classes.png" src="_images/smiles_classes.png" />
+<p class="caption"><span class="caption-text">Flowchart of the different AST objects.
+Note that the <code class="docutils literal notranslate"><span class="pre">parent</span></code> attributes is set at the initialization of the object</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+</div>
+<p>A <code class="docutils literal notranslate"><span class="pre">Chain</span></code> is a succession of <code class="docutils literal notranslate"><span class="pre">BranchedAtom</span></code>, but those can have <code class="docutils literal notranslate"><span class="pre">Branch</span></code> (other chains) or <code class="docutils literal notranslate"><span class="pre">RingBond</span></code> (loops in the graph).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">BranchedAtom</span></code> also contains an <code class="docutils literal notranslate"><span class="pre">Atom</span></code>, which stores informations about it (symbol, charge, local chirality, …).
+Note that the <code class="docutils literal notranslate"><span class="pre">atom_id</span></code> field is only there to help interaction with higher-level libraries, and should not be considered as <em>unique</em> (except if the validator is used, which checks the uniqueness).</p>
+</div>
+<div class="section" id="grammar-and-parsing">
+<h2>Grammar and parsing<a class="headerlink" href="#grammar-and-parsing" title="Permalink to this headline">¶</a></h2>
+<p>The grammar used by this implementation is derived from the work done in <a class="reference external" href="http://opensmiles.org/opensmiles.html">OpenSMILES</a>, but some rules where slightly modified (<code class="docutils literal notranslate"><span class="pre">chain</span></code> use left recursion rather than right and <code class="docutils literal notranslate"><span class="pre">ringbond</span></code> was modified).</p>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text"><a class="reference download internal" download="" href="_downloads/7990de5cdc7986677eda1971cff2cee5/smiles.txt"><code class="xref download docutils literal notranslate"><span class="pre">./grammars/smiles.txt</span></code></a></span><a class="headerlink" href="#id5" title="Permalink to this code">¶</a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># token definitions:
+DIGIT := &#39;0&#39; | &#39;1&#39; | &#39;2&#39; | &#39;3&#39; | &#39;4&#39; | &#39;5&#39; | &#39;6&#39; | &#39;7&#39; | &#39;8&#39; | &#39;9&#39; ;
+LPAR := &#39;(&#39; ;
+RPAR := &#39;)&#39; ;
+LSPAR := &#39;[&#39; ;
+RSPAR := &#39;]&#39; ;
+PLUS := &#39;+&#39; ;
+MINUS := &#39;-&#39; ;
+DOT := &#39;.&#39; ;
+WILDCARD := &#39;*&#39; ;
+PERCENT := &#39;%&#39; ;
+AT = &#39;@&#39; ;
+COLON := &#39;:&#39; ;
+EOF := &#39; &#39; | &#39;\t&#39; | &#39;\n&#39; | &#39;\r&#39; | &#39;\0&#39; ;
+
+# basic types
+bond := &#39;=&#39; | &#39;#&#39; | &#39;$&#39; | &#39;/&#39; | &#39;\&#39; | MINUS | COLON ;
+element := &#39;H&#39; | &#39;He&#39; | ... ;
+aromatic_element := &#39;b&#39; | &#39;c&#39; | &#39;n&#39; | &#39;o&#39; | &#39;p&#39; | &#39;s&#39; | &#39;se&#39; | &#39;as&#39; ;
+aliphatic_element := &#39;B&#39; | &#39;C&#39; | &#39;N&#39; | &#39;O&#39; | &#39;S&#39; | &#39;P&#39; | &#39;F&#39; | &#39;Cl&#39; | &#39;Br&#39; | &#39;I&#39;
+organic_subset := aliphatic_element | aromatic_element ;
+symbol := element | aromatic_element | WILDCARD ;
+isotope := DIGIT* ;
+chirality := AT AT? ;
+hcount := &#39;H&#39; DIGIT? ;
+charge := (MINUS (DIGIT? DIGIT)?) | (PLUS (DIGIT? DIGIT)?) ;
+class := COLON DIGIT DIGIT? DIGIT? DIGIT? ;
+
+# Parser.braket_atom()
+bracket_atom := LSPAR isotope? symbol chirality? hcount? charge? class? RSPAR ;
+
+# Parser.atom()
+atom := bracket_atom | organic_subset | WILDCARD ;
+
+# Parser.ring_bond()
+ring_id := DIGIT | PERCENT DIGIT DIGIT ;
+ring_bond := bond? ring_id ;
+
+# Parser.branch()
+branch := LPAR (bond | DOT)? chain RPAR ;
+
+# Parser.branched_atom() (see note)
+branched_atom := atom ring_bond* branch* ;
+
+# Parser.chain() (see note)
+chain := branched_atom ((bond | DOT)? chain)? ;
+
+# Parser.smiles()
+smiles := chain? EOF ;
+</pre></div>
+</div>
+</div>
+<p>Unless stated otherwise, this implementation follows the open specification, except:</p>
+<ul class="simple">
+<li><p>All the <code class="docutils literal notranslate"><span class="pre">aromatic_element</span></code> is fully included in the <code class="docutils literal notranslate"><span class="pre">organic_subset</span></code> (so that <code class="docutils literal notranslate"><span class="pre">se</span></code> and <code class="docutils literal notranslate"><span class="pre">as</span></code> can be used without brackets) ;</p></li>
+<li><p>Square planar (<code class="docutils literal notranslate"><span class="pre">&#64;SP</span></code>), bipyramidal (<code class="docutils literal notranslate"><span class="pre">&#64;TB</span></code>) and octahedral (<code class="docutils literal notranslate"><span class="pre">&#64;OH</span></code>) chirality are not implemented (not even in the grammar) ;</p></li>
+<li><p>There is not check of the aromaticity (or not) yet (that should go into <code class="docutils literal notranslate"><span class="pre">Validation</span></code>) ;</p></li>
+<li><p>Implicit hydrogen count (for element of the so-called <em>organic</em> subset) is not always correct (especially with aromaticity, for example the nitrogen in <code class="docutils literal notranslate"><span class="pre">n1ccccc1</span></code>) ;</p></li>
+<li><p>The output is not <em>standardized</em> (nor <em>canonical</em>), especially concerning cycles and “removing chiral marking on atoms that are not” (that should go into <code class="docutils literal notranslate"><span class="pre">Validation</span></code>) ;</p></li>
+<li><p>There is not (yet?) way to allow <em>non-standard</em> (loosy) SMILES inputs!</p></li>
+</ul>
+</div>
+<div class="section" id="sources">
+<h2>Sources<a class="headerlink" href="#sources" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system">Wikipedia page of SMILES</a> ;</p></li>
+<li><p><a class="reference external" href="http://opensmiles.org/opensmiles.html">The OpenSMILES specification</a> ;</p></li>
+<li><p><a class="reference external" href="http://www.daylight.com/dayhtml/doc/theory/theory.smiles.html">Daylight’s explanation page of SMILES</a> ;</p></li>
+<li><p>A page to test SMILES: <a class="reference external" href="https://cactus.nci.nih.gov/gifcreator/">CACTVS GIF/PNG-Creator on the NIH website</a> ;</p></li>
+<li><p><a class="reference external" href="https://chemaxon.com/marvin-archive/6.0.3/marvin/help/formats/smiles-doc.html">Marvin documentation of SMILES</a>  (in which they declare to use CANGEN) ;</p></li>
+<li><p><a class="reference external" href="http://openbabel.org/dev-api/canonical_code_algorithm.shtml">Details on OpenBabel implementation of SMILES</a> ;</p></li>
+<li><p>D. Weininger <em>J. Chem. Inf. Comput. Sci.</em> <strong>28</strong>, 31 (1988) <a class="reference external" href="https://dx.doi.org/10.1021/ci00057a005">10.1021/ci00057a005</a> ;</p></li>
+<li><p>D. Weininger <em>et al</em>. <em>J. Chem. Inf. Comput. Sci.</em> <strong>29</strong>, 97 (1989) <a class="reference external" href="https://dx.doi.org/10.1021/ci00062a008">10.1021/ci00062a008</a> ;</p></li>
+<li><p>K. K. Agarwal <em>et al.</em> <em>J. Chem. Inf. Comput. Sci.</em> <strong>34</strong>, 463 (1994) <a class="reference external" href="https://dx.doi.org/10.1021/ci00019a001">10.1021/ci00019a001</a> ;</p></li>
+<li><p>G. Neglur <em>et al.</em> “Assigning Unique Keys to Chemical Compounds for Data Integration: Some Interesting Counter Examples” in <em>Data Integration in the Life Sciences</em>, 145–157 (Springer, Berlin, Heidelberg, 2005) <a class="reference external" href="https://dx.doi.org/10.1007/11530084_13">10.1007/11530084_13</a> ;</p></li>
+<li><p>N. M. O’Boyle <em>J. Cheminf.</em> <strong>4</strong>, 22 (2012)  <a class="reference external" href="https://dx.doi.org/10.1186/1758-2946-4-22">10.1186/1758-2946-4-22</a> ;</p></li>
+<li><p>Details on the <a class="reference external" href="http://depth-first.com/articles/2006/08/12/inchi-canonicalization-algorithm/">canonicalization algorithm of InCHI</a> (actually similar to the one of Agarwal) ;</p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing <code class="docutils literal notranslate"><span class="pre">osmipy</span></code></a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SMILES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#about-smiles">About SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#about-stereochemistry">About “stereochemistry”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#implementation-details">Implementation details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#grammar-and-parsing">Grammar and parsing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sources">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="smarts.html">WIP: SMARTS</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/about-smiles.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Pierre Beaujean.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/about-smiles.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
