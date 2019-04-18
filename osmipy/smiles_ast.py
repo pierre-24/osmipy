@@ -13,6 +13,19 @@ class AST:
     def __init__(self):
         self.parent = None
 
+    def _set_if(self, value, attr, type_):
+        if type(value) is not type_:
+            raise TypeError(value)
+
+        value.parent = self
+        setattr(self, attr, value)
+
+    def _set_if_or_none(self, value, attr, type_):
+        if value is None:
+            setattr(self, attr, None)
+        else:
+            self._set_if(value, attr, type_)
+
     @property
     def parents(self):
         """Iterate over all parents
@@ -138,32 +151,55 @@ class Chain(AST):
     """
     def __init__(self, left, right=None, bond=None):
         super().__init__()
+
+        self._left = None
+        self._right = None
+        self._bond = None
+
+        # set
         self.left = left
         self.right = right
         self.bond = bond
 
-        self.left.parent = self
+    @property
+    def left(self):
+        return self._left
 
-        if self.right is not None:
-            self.right.parent = self
-        if self.bond is not None:
-            self.bond.parent = self
+    @left.setter
+    def left(self, value):
+        self._set_if(value, '_left', BranchedAtom)
+
+    @property
+    def right(self):
+        return self._right
+
+    @right.setter
+    def right(self, value):
+        self._set_if_or_none(value, '_right', Chain)
+
+    @property
+    def bond(self):
+        return self._bond
+
+    @bond.setter
+    def bond(self, value):
+        self._set_if_or_none(value, '_bond', Bond)
 
     @property
     def children(self):
-        yield self.left
-        if self.bond is not None:
-            yield self.bond
-        if self.right is not None:
-            yield self.right
+        yield self._left
+        if self._bond is not None:
+            yield self._bond
+        if self._right is not None:
+            yield self._right
 
     def _remove_child(self, child):
         if type(child) is BranchedAtom:
             raise ValueError('cannot remove a `BranchedAtom`')
-        elif child == self.bond:
-            self.bond = None
-        elif child == self.right:
-            self.right = None
+        elif child == self._bond:
+            self._bond = None
+        elif child == self._right:
+            self._right = None
         else:
             raise NotAChildError(child)
 
@@ -181,21 +217,57 @@ class BranchedAtom(AST):
 
     def __init__(self, atom, ring_bonds=None, branches=None):
         super().__init__()
+
+        self._atom = None
+
+        # set
         self.atom = atom
-        self.ring_bonds = [] if ring_bonds is None else ring_bonds
-        self.branches = [] if branches is None else branches
+        self.branches = []
+        self.ring_bonds = []
 
-        self.atom.parent = self
+        if ring_bonds is not None:
+            for i in ring_bonds:
+                self.append_ring_bond(i)
 
-        for r in self.ring_bonds:
-            r.parent = self
+        if branches is not None:
+            for i in branches:
+                self.append_branch(i)
 
-        for b in self.branches:
-            b.parent = self
+    @property
+    def atom(self):
+        return self._atom
+
+    @atom.setter
+    def atom(self, value):
+        self._set_if(value, '_atom', Atom)
+
+    def append_branch(self, branch):
+        """Add a branch
+
+        :type branch: Branch
+        """
+
+        if type(branch) is not Branch:
+            raise TypeError(branch)
+
+        branch.parent = self
+        self.branches.append(branch)
+
+    def append_ring_bond(self, ring_bond):
+        """Add a ring bond
+
+        :type ring_bond: RingBond
+        """
+
+        if type(ring_bond) is not RingBond:
+            raise TypeError(ring_bond)
+
+        ring_bond.parent = self
+        self.ring_bonds.append(ring_bond)
 
     @property
     def children(self):
-        yield self.atom
+        yield self._atom
         for rb in self.ring_bonds:
             yield rb
         for b in self.branches:
@@ -224,14 +296,14 @@ class BranchedAtom(AST):
 
         :rtype: bool
         """
-        return self.atom.is_organic()
+        return self._atom.is_organic()
 
     def is_aromatic(self):
         """
 
         :rtype: bool
         """
-        return self.atom.is_aromatic()
+        return self._atom.is_aromatic()
 
     def implicit_hcount(self):
         """Determine the implicit hydrogen count by making the difference between the sum of all bond orders and
@@ -265,7 +337,7 @@ class BranchedAtom(AST):
 
             return bo
 
-        if not self.is_organic() or self.atom.is_bracketed():
+        if not self.is_organic() or self._atom.is_bracketed():
             return -1
         else:
             aromatic = self.is_aromatic()
@@ -287,7 +359,7 @@ class BranchedAtom(AST):
 
             total_bonds = int(total_bonds)
 
-            normal_valences = NORMAL_VALENCES[self.atom.atom_symbol()]
+            normal_valences = NORMAL_VALENCES[self._atom.atom_symbol()]
             for v in normal_valences:
                 if v < total_bonds:
                     continue
@@ -310,8 +382,8 @@ class BranchedAtom(AST):
 
         n += len(self.branches) + len(self.ring_bonds)
 
-        if self.atom.is_bracketed():
-            n += self.atom.hcount
+        if self._atom.is_bracketed():
+            n += self._atom.hcount
         else:
             n += self.implicit_hcount()
 
@@ -328,24 +400,40 @@ class Branch(AST):
     """
     def __init__(self, chain, bond=None):
         super().__init__()
+
+        self._chain = None
+        self._bond = None
+
+        # set
         self.chain = chain
         self.bond = bond
 
-        self.chain.parent = self
+    @property
+    def bond(self):
+        return self._bond
 
-        if self.bond is not None:
-            self.bond.parent = self
+    @bond.setter
+    def bond(self, value):
+        self._set_if_or_none(value, '_bond', Bond)
+
+    @property
+    def chain(self):
+        return self._chain
+
+    @chain.setter
+    def chain(self, value):
+        self._set_if(value, '_chain', Chain)
 
     @property
     def children(self):
-        if self.bond is not None:
-            yield self.bond
+        if self._bond is not None:
+            yield self._bond
 
-        yield self.chain
+        yield self._chain
 
     def _remove_child(self, child):
-        if child == self.chain:
-            self.chain = None
+        if child == self._chain:
+            self._chain = None
         else:
             raise NotAChildError(child)
 
@@ -360,19 +448,44 @@ class RingBond(AST):
     :param target: the other atom
     :type target: BranchedAtom
     """
+
     def __init__(self, ring_id, bond=None, target=None):
         super().__init__()
+
+        self._bond = None
+        self._target = None
+
+        # set
         self.ring_id = ring_id
         self.bond = bond
         self.target = target
 
-        if self.bond is not None:
-            self.bond.parent = self
+    @property
+    def bond(self):
+        return self._bond
+
+    @bond.setter
+    def bond(self, value):
+        self._set_if_or_none(value, '_bond', Bond)
+
+    @property
+    def target(self):
+        return self._target
+
+    @target.setter
+    def target(self, value):
+        if value is None:
+            self._target = None
+        else:
+            if type(value) is not BranchedAtom:
+                raise TypeError(value)
+
+            self._target = value
 
     @property
     def children(self):
-        if self.bond is not None:
-            yield self.bond
+        if self._bond is not None:
+            yield self._bond
 
         return
 
@@ -381,16 +494,16 @@ class RingBond(AST):
         """
 
         try:
-            i = next(i for i, a in enumerate(self.target.ring_bonds) if a.target == self.parent)
-            del self.target.ring_bonds[i]
+            i = next(i for i, a in enumerate(self._target.ring_bonds) if a._target == self.parent)
+            del self._target.ring_bonds[i]
         except:  # something was wrong (parent is already gone, or ring bond was already deleted) ...
             pass  # ... Never mind.
 
         super()._before_delete()
 
     def _remove_child(self, child):
-        if child == self.bond:
-            self.bond = None
+        if child == self._bond:
+            self._bond = None
         else:
             raise NotAChildError(child)
 
@@ -411,8 +524,11 @@ class Atom(AST):
     :param klass: class
     :type klass: int
     """
+
     def __init__(self, symbol, isotope=0, chirality=None, hcount=0, charge=0, klass=0, atom_id=-1):
         super().__init__()
+
+        # set
         self.symbol = symbol
         self.isotope = isotope
         self.chirality = chirality
@@ -464,8 +580,11 @@ class Bond(AST):
     :param symbol: bond symbol
     :type symbol: str
     """
+
     def __init__(self, symbol=None):
         super().__init__()
+
+        # set
         self.symbol = symbol
 
     def bond_order(self):

@@ -269,10 +269,9 @@ class Parser:
         ringbonds = []
 
         while self.current_token.type in [DIGIT, PERCENT]:
-            ring_bond = self.ring_bond()
-            ringbonds.append(ring_bond)
+            ringbonds.append(self.ring_bond())
 
-        ba = BranchedAtom(atom=atom, ring_bonds=ringbonds, branches=[])
+        ba = BranchedAtom(atom=atom, ring_bonds=ringbonds)
 
         self._consolidate_ring_bonds(ringbonds)  # ... only after setting their parents !
         return ba
@@ -292,7 +291,6 @@ class Parser:
         """
 
         left = self.branched_atom()
-
         bond = None
 
         if self.current_token.type in BONDS_TYPE + [DOT]:
@@ -308,9 +306,9 @@ class Parser:
 
             ring_bond = self.ring_bond()
             ring_bond.bond = bond
-            ring_bond.parent = left
             ring_bonds_to_consolidate.append(ring_bond)
-            left.ring_bonds.append(ring_bond)
+            left.append_ring_bond(ring_bond)
+
             bond = None
 
             # needs to get an eventual new bond
@@ -322,9 +320,7 @@ class Parser:
 
         if bond is None:
             while self.current_token.type == LPAR:
-                branch = self.branch()
-                branch.parent = left
-                left.branches.append(branch)
+                left.append_branch(self.branch())
 
             # needs to get an eventual new bond
             if self.current_token.type in BONDS_TYPE + [DOT]:
