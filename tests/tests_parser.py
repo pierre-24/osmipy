@@ -71,6 +71,7 @@ class ParserTestCase(OSmiPyTestCase):
         self.assertEqual(r.left.branches[0].chain.parent, r.left.branches[0])
         self.assertEqual(r.left.branches[0].bond.parent, r.left.branches[0])
 
+        # An example with ring bonds
         r = smiles_ast.Chain(
             left=smiles_ast.BranchedAtom(
                 atom=smiles_ast.Atom(symbol='C'),
@@ -111,7 +112,9 @@ class ParserTestCase(OSmiPyTestCase):
         self.assertEqual(rx.left.ring_bonds[0].target, rx.right.right.left)
         self.assertEqual(rx.left, rx.right.right.left.ring_bonds[0].target)
 
-    def test_children_and_descendants(self):
+    def test_navigate_tree(self):
+        """Test going down, up, left and right in the tree
+        """
 
         smiles = ParserTestCase.parse('Cl\\C=C/F')
 
@@ -123,6 +126,9 @@ class ParserTestCase(OSmiPyTestCase):
         self.assertIn(smiles.right, children)
 
         self.assertNotIn(smiles.right.left, children)
+
+        # contents
+        self.assertEqual(children, smiles.contents)
 
         # descendants
         descendants = list(smiles.descendants)
@@ -142,6 +148,18 @@ class ParserTestCase(OSmiPyTestCase):
         parents = list(f_atom.parents)
         self.assertEqual(len(parents), 5)  # BranchedAtom + 4 Chain
         self.assertEqual(len([i for i in parents if type(i) is smiles_ast.Chain]), 4)
+
+        # next sibling(s)
+        self.assertEqual(smiles.next_sibling, None)
+        self.assertEqual(smiles.left.next_sibling, smiles.bond)
+        self.assertEqual(smiles.bond.next_sibling, smiles.right)
+        self.assertEqual(smiles.right.next_sibling, None)
+
+        # previous sibling(s)
+        self.assertEqual(smiles.previous_sibling, None)
+        self.assertEqual(smiles.left.previous_sibling, None)
+        self.assertEqual(smiles.bond.previous_sibling, smiles.left)
+        self.assertEqual(smiles.right.previous_sibling, smiles.bond)
 
     def test_parse_ring_bond(self):
         """Specific problematic ring bond cases (thus raising errors)"""

@@ -36,6 +36,71 @@ class AST:
             if hasattr(c, 'descendants'):
                 yield from c.descendants
 
+    @property
+    def contents(self):
+        """Return a list of all the children
+
+        :rtype: list
+        """
+        return list(self.children)
+
+    def _siblings_of(self, child, reverse=False):
+        """Yield the next (or previous) children w.r.t. a given element
+
+        :yield ValueError: if ``element`` is not a children
+        :param child: a child
+        :type child: AST
+        :param reverse: yield previous children instead of next ones
+        :type reverse: bool
+        """
+
+        contents = self.contents
+        if reverse:
+            contents.reverse()
+
+        i = contents.index(child)
+
+        if i < len(contents) - 1:
+            yield from contents[i + 1:]  # not the last element
+        else:
+            return
+
+    @property
+    def next_siblings(self):
+        """Yield next siblings on the same level of the tree"""
+        if self.parent is not None:
+            yield from self.parent._siblings_of(self)
+        else:
+            return
+
+    @property
+    def previous_siblings(self):
+        """Yield previous siblings on the same level of the tree"""
+        if self.parent is not None:
+            yield from self.parent._siblings_of(self, reverse=True)
+        else:
+            return
+
+    @property
+    def previous_sibling(self):
+        """Get next siblings on the same level of the tree
+        """
+
+        try:
+            return next(self.previous_siblings)
+        except StopIteration:
+            return None
+
+    @property
+    def next_sibling(self):
+        """Get previous siblings on the same level of the tree
+        """
+
+        try:
+            return next(self.next_siblings)
+        except StopIteration:
+            return None
+
 
 class Chain(AST):
     """AST element: Chain (``chain``)
@@ -246,6 +311,13 @@ class RingBond(AST):
         if self.bond is not None:
             self.bond.parent = self
 
+    @property
+    def children(self):
+        if self.bond is not None:
+            yield self.bond
+
+        return
+
 
 class Atom(AST):
     """AST element: Atom (``atom``)
@@ -305,6 +377,10 @@ class Atom(AST):
         else:
             return self.symbol
 
+    @property
+    def contents(self):
+        raise AttributeError('`{}` object has no `contents`'.format(type(self).__name__))
+
 
 class Bond(AST):
     """AST element: Bond (``bond | DOT``)
@@ -359,3 +435,7 @@ class Bond(AST):
     @staticmethod
     def invsign(s):
         return '\\' if s == '/' else '/'
+
+    @property
+    def contents(self):
+        raise AttributeError('`{}` object has no `contents`'.format(type(self).__name__))
