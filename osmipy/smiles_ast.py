@@ -108,6 +108,13 @@ class AST:
     def _remove_child(self, child):
         raise NotImplementedError('_remove_child()')
 
+    def _before_delete(self):
+        """Eventual cleanup before deletion
+        """
+
+        for c in self.children:
+            c._before_delete()
+
     def remove(self):
         """Remove itself from the parent
         """
@@ -115,6 +122,7 @@ class AST:
         if self.parent is None:
             raise AttributeError('`self` has no parent')
 
+        self._before_delete()
         return self.parent._remove_child(self)
 
 
@@ -188,10 +196,10 @@ class BranchedAtom(AST):
     @property
     def children(self):
         yield self.atom
-        for b in self.branches:
-            yield b
         for rb in self.ring_bonds:
             yield rb
+        for b in self.branches:
+            yield b
 
     def _remove_child(self, child):
         if type(child) is Atom:
@@ -205,8 +213,7 @@ class BranchedAtom(AST):
         elif type(child) is RingBond:
             try:
                 i = self.ring_bonds.index(child)
-                self.ring_bonds[i]._safe_delete()  # to be sure
-                del self.ring_bonds[i]
+                del self.ring_bonds[i]  # both end will be deleted
             except ValueError:
                 raise NotAChildError(child)
         else:
@@ -369,18 +376,17 @@ class RingBond(AST):
 
         return
 
-    def _safe_delete(self):
+    def _before_delete(self):
         """Just remove the other ring bond in case of deletion
         """
 
         try:
-            i = self.target.ring_bonds.index(self)
+            i = next(i for i, a in enumerate(self.target.ring_bonds) if a.target == self.parent)
             del self.target.ring_bonds[i]
         except:  # something was wrong (parent is already gone, or ring bond was already deleted) ...
             pass  # ... Never mind.
 
-    def __del__(self):
-        self._safe_delete()
+        super()._before_delete()
 
     def _remove_child(self, child):
         if child == self.bond:

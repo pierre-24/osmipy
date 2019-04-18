@@ -322,7 +322,9 @@ class Parser:
 
         if bond is None:
             while self.current_token.type == LPAR:
-                left.branches.append(self.branch())
+                branch = self.branch()
+                branch.parent = left
+                left.branches.append(branch)
 
             # needs to get an eventual new bond
             if self.current_token.type in BONDS_TYPE + [DOT]:

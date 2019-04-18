@@ -141,8 +141,8 @@ class ParserTestCase(OSmiPyTestCase):
         to_test = [
             ('C', 4),
             ('c1ccccc1', 1),
-            ('n1ccccc1', 0),  # /!\ should gives 1 (but aromatic detection is not yet implemented)
-            ('N1C=CC=C1', 1),  # .. In the kekule form, that works
+            ('n1ccccc1', 0),
+            ('N1C=CC=C1', 1),  # Note that this should be `[nH]1cccc1`, otherwise the implicit hcount is incorrect
             ('N1C=CC=CC=1', 0),
             ('N(=O)O', 0),
             ('N(=O)(=O)O', 0),
@@ -160,7 +160,7 @@ class ASTTestCase(OSmiPyTestCase):
 
     def setUp(self):
         self.smiles = ParserTestCase.parse('Cl\\C=C/F')
-        self.smiles2 = ParserTestCase.parse('C1CC1')
+        self.smiles2 = ParserTestCase.parse('C1(Cl)CC1')
 
     def test_navigate_tree(self):
         """Test going down, up, left and right in the tree
@@ -218,6 +218,33 @@ class ASTTestCase(OSmiPyTestCase):
         with self.assertRaises(ValueError):
             self.smiles.left.atom.remove()  # cannot remove an `Atom`
 
+        with self.assertRaises(AttributeError):
+            self.smiles.remove()
+
+        # remove a bond in a chain
         self.assertIsNotNone(self.smiles.bond)
         self.smiles.bond.remove()
         self.assertIsNone(self.smiles.bond)
+
+        # remove a chain
+        self.assertIsNotNone(self.smiles.right.right.right)
+        self.smiles.right.right.right.remove()
+        self.assertIsNone(self.smiles.right.right.right)
+
+        # remove a branch in a BranchedAtom
+        self.assertNotEqual(self.smiles2.left.branches, [])
+        self.smiles2.left.branches[0].remove()
+        self.assertEqual(self.smiles2.left.branches, [])
+
+        # remove a ring bond in a branched atom
+        target = self.smiles2.left.ring_bonds[0].target
+        self.assertNotEqual(self.smiles2.left.ring_bonds, [])
+        self.smiles2.left.ring_bonds[0].remove()
+        self.assertEqual(self.smiles2.left.ring_bonds, [])
+        self.assertEqual(target.ring_bonds, [])  # both ends are deleted
+
+        # indirectly delete a ring bond by removing the parent chain
+        smiles3 = ParserTestCase.parse('C1CC1')
+        self.assertNotEqual(smiles3.left.ring_bonds, [])
+        smiles3.right.right.remove()
+        self.assertEqual(smiles3.left.ring_bonds, [])
