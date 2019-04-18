@@ -3,6 +3,10 @@ import warnings
 from osmipy.tokens import *
 
 
+class NotAChildError(ValueError):
+    pass
+
+
 class AST:
     """AST element
     """
@@ -101,6 +105,18 @@ class AST:
         except StopIteration:
             return None
 
+    def _remove_child(self, child):
+        raise NotImplementedError('_remove_child()')
+
+    def remove(self):
+        """Remove itself from the parent
+        """
+
+        if self.parent is None:
+            raise AttributeError('`self` has no parent')
+
+        return self.parent._remove_child(self)
+
 
 class Chain(AST):
     """AST element: Chain (``chain``)
@@ -132,6 +148,16 @@ class Chain(AST):
             yield self.bond
         if self.right is not None:
             yield self.right
+
+    def _remove_child(self, child):
+        if type(child) is BranchedAtom:
+            raise ValueError('cannot remove a `BranchedAtom`')
+        elif child == self.bond:
+            self.bond = None
+        elif child == self.right:
+            self.right = None
+        else:
+            raise NotAChildError(child)
 
 
 class BranchedAtom(AST):
@@ -166,6 +192,25 @@ class BranchedAtom(AST):
             yield b
         for rb in self.ring_bonds:
             yield rb
+
+    def _remove_child(self, child):
+        if type(child) is Atom:
+            raise ValueError('cannot remove an `Atom`')
+        elif type(child) is Branch:
+            try:
+                i = self.branches.index(child)
+                del self.branches[i]
+            except ValueError:
+                raise NotAChildError(child)
+        elif type(child) is RingBond:
+            try:
+                i = self.ring_bonds.index(child)
+                self.ring_bonds[i]._safe_delete()  # to be sure
+                del self.ring_bonds[i]
+            except ValueError:
+                raise NotAChildError(child)
+        else:
+            raise NotAChildError(child)
 
     def is_organic(self):
         """
@@ -291,6 +336,12 @@ class Branch(AST):
 
         yield self.chain
 
+    def _remove_child(self, child):
+        if child == self.chain:
+            self.chain = None
+        else:
+            raise NotAChildError(child)
+
 
 class RingBond(AST):
     """AST element: RingBond (``(bond | DOT) ? ring_id``)
@@ -318,6 +369,25 @@ class RingBond(AST):
 
         return
 
+    def _safe_delete(self):
+        """Just remove the other ring bond in case of deletion
+        """
+
+        try:
+            i = self.target.ring_bonds.index(self)
+            del self.target.ring_bonds[i]
+        except:  # something was wrong (parent is already gone, or ring bond was already deleted) ...
+            pass  # ... Never mind.
+
+    def __del__(self):
+        self._safe_delete()
+
+    def _remove_child(self, child):
+        if child == self.bond:
+            self.bond = None
+        else:
+            raise NotAChildError(child)
+
 
 class Atom(AST):
     """AST element: Atom (``atom``)
@@ -344,6 +414,10 @@ class Atom(AST):
         self.charge = charge
         self.klass = klass
         self.atom_id = atom_id
+
+    @property
+    def contents(self):
+        raise AttributeError('`{}` object has no `contents`'.format(type(self).__name__))
 
     def is_bracketed(self):
         """Should this atom be bracketed?
@@ -376,10 +450,6 @@ class Atom(AST):
             return self.symbol.title()
         else:
             return self.symbol
-
-    @property
-    def contents(self):
-        raise AttributeError('`{}` object has no `contents`'.format(type(self).__name__))
 
 
 class Bond(AST):

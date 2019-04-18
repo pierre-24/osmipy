@@ -1,13 +1,19 @@
 from tests import OSmiPyTestCase
 
-from osmipy import lexer, smiles_parser, smiles_ast
+from osmipy import lexer, smiles_parser, smiles_ast, smiles
 
 
 class ParserTestCase(OSmiPyTestCase):
 
     @staticmethod
     def parse(s):
+        """Parse a string to AST"""
         return smiles_parser.Parser(lexer.Lexer(s)).smiles()
+
+    @staticmethod
+    def interpret(ast):
+        """Get a string representation of the AST"""
+        return smiles.Interpreter(ast).interpret()
 
     def test_parser(self):
         """Test the parser (on a rather simple string)"""
@@ -112,55 +118,6 @@ class ParserTestCase(OSmiPyTestCase):
         self.assertEqual(rx.left.ring_bonds[0].target, rx.right.right.left)
         self.assertEqual(rx.left, rx.right.right.left.ring_bonds[0].target)
 
-    def test_navigate_tree(self):
-        """Test going down, up, left and right in the tree
-        """
-
-        smiles = ParserTestCase.parse('Cl\\C=C/F')
-
-        # children
-        children = list(smiles.children)
-
-        self.assertIn(smiles.left, children)
-        self.assertIn(smiles.bond, children)
-        self.assertIn(smiles.right, children)
-
-        self.assertNotIn(smiles.right.left, children)
-
-        # contents
-        self.assertEqual(children, smiles.contents)
-
-        # descendants
-        descendants = list(smiles.descendants)
-        self.assertEqual(len(descendants), 14)
-
-        self.assertEqual(len([i for i in descendants if type(i) is smiles_ast.Atom]), 4)  # Cl, C, C, F
-        self.assertEqual(len([i for i in descendants if type(i) is smiles_ast.BranchedAtom]), 4)  # Same as above
-        self.assertEqual(len([i for i in descendants if type(i) is smiles_ast.Bond]), 3)  # /, \, =
-        self.assertEqual(len([i for i in descendants if type(i) is smiles_ast.Chain]), 3)
-
-        # parent
-        f_atom = descendants[-1]
-        self.assertIs(type(f_atom), smiles_ast.Atom)
-        self.assertIs(type(f_atom.parent), smiles_ast.BranchedAtom)
-
-        # parents
-        parents = list(f_atom.parents)
-        self.assertEqual(len(parents), 5)  # BranchedAtom + 4 Chain
-        self.assertEqual(len([i for i in parents if type(i) is smiles_ast.Chain]), 4)
-
-        # next sibling(s)
-        self.assertEqual(smiles.next_sibling, None)
-        self.assertEqual(smiles.left.next_sibling, smiles.bond)
-        self.assertEqual(smiles.bond.next_sibling, smiles.right)
-        self.assertEqual(smiles.right.next_sibling, None)
-
-        # previous sibling(s)
-        self.assertEqual(smiles.previous_sibling, None)
-        self.assertEqual(smiles.left.previous_sibling, None)
-        self.assertEqual(smiles.bond.previous_sibling, smiles.left)
-        self.assertEqual(smiles.right.previous_sibling, smiles.bond)
-
     def test_parse_ring_bond(self):
         """Specific problematic ring bond cases (thus raising errors)"""
 
@@ -197,3 +154,70 @@ class ParserTestCase(OSmiPyTestCase):
         for smi, hcount in to_test:
             node = ParserTestCase.parse(smi)
             self.assertEqual(hcount, node.left.implicit_hcount(), msg=smi)
+
+
+class ASTTestCase(OSmiPyTestCase):
+
+    def setUp(self):
+        self.smiles = ParserTestCase.parse('Cl\\C=C/F')
+        self.smiles2 = ParserTestCase.parse('C1CC1')
+
+    def test_navigate_tree(self):
+        """Test going down, up, left and right in the tree
+        """
+
+        # children
+        children = list(self.smiles.children)
+
+        self.assertIn(self.smiles.left, children)
+        self.assertIn(self.smiles.bond, children)
+        self.assertIn(self.smiles.right, children)
+
+        self.assertNotIn(self.smiles.right.left, children)
+
+        # contents
+        self.assertEqual(children, self.smiles.contents)
+
+        # descendants
+        descendants = list(self.smiles.descendants)
+        self.assertEqual(len(descendants), 14)
+
+        self.assertEqual(len([i for i in descendants if type(i) is smiles_ast.Atom]), 4)  # Cl, C, C, F
+        self.assertEqual(len([i for i in descendants if type(i) is smiles_ast.BranchedAtom]), 4)  # Same as above
+        self.assertEqual(len([i for i in descendants if type(i) is smiles_ast.Bond]), 3)  # /, \, =
+        self.assertEqual(len([i for i in descendants if type(i) is smiles_ast.Chain]), 3)
+
+        # parent
+        f_atom = descendants[-1]
+        self.assertIs(type(f_atom), smiles_ast.Atom)
+        self.assertIs(type(f_atom.parent), smiles_ast.BranchedAtom)
+
+        # parents
+        parents = list(f_atom.parents)
+        self.assertEqual(len(parents), 5)  # BranchedAtom + 4 Chain
+        self.assertEqual(len([i for i in parents if type(i) is smiles_ast.Chain]), 4)
+
+        # next sibling(s)
+        self.assertEqual(self.smiles.next_sibling, None)
+        self.assertEqual(self.smiles.left.next_sibling, self.smiles.bond)
+        self.assertEqual(self.smiles.bond.next_sibling, self.smiles.right)
+        self.assertEqual(self.smiles.right.next_sibling, None)
+
+        # previous sibling(s)
+        self.assertEqual(self.smiles.previous_sibling, None)
+        self.assertEqual(self.smiles.left.previous_sibling, None)
+        self.assertEqual(self.smiles.bond.previous_sibling, self.smiles.left)
+        self.assertEqual(self.smiles.right.previous_sibling, self.smiles.bond)
+
+    def test_remove(self):
+        """Test node removal"""
+
+        with self.assertRaises(ValueError):
+            self.smiles.left.remove()  # cannot remove a `BranchedAtom`
+
+        with self.assertRaises(ValueError):
+            self.smiles.left.atom.remove()  # cannot remove an `Atom`
+
+        self.assertIsNotNone(self.smiles.bond)
+        self.smiles.bond.remove()
+        self.assertIsNone(self.smiles.bond)
