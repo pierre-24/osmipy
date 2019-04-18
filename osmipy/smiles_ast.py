@@ -9,6 +9,33 @@ class AST:
     def __init__(self):
         self.parent = None
 
+    @property
+    def parents(self):
+        """Iterate over all parents
+        """
+
+        p = self.parent
+        while p is not None:
+            yield p
+            p = p.parent
+
+    @property
+    def children(self):
+        """Iterate over children
+        """
+        return
+        yield  # yield nothing
+
+    @property
+    def descendants(self):
+        """Iterate over all tag children, recursively
+        """
+
+        for c in self.children:
+            yield c
+            if hasattr(c, 'descendants'):
+                yield from c.descendants
+
 
 class Chain(AST):
     """AST element: Chain (``chain``)
@@ -33,6 +60,14 @@ class Chain(AST):
         if self.bond is not None:
             self.bond.parent = self
 
+    @property
+    def children(self):
+        yield self.left
+        if self.bond is not None:
+            yield self.bond
+        if self.right is not None:
+            yield self.right
+
 
 class BranchedAtom(AST):
     """AST element: BranchedAtom (``branched_atom``)
@@ -44,6 +79,7 @@ class BranchedAtom(AST):
     :param branches: branches
     :type branches: list of Branch
     """
+
     def __init__(self, atom, ring_bonds=None, branches=None):
         super().__init__()
         self.atom = atom
@@ -57,6 +93,14 @@ class BranchedAtom(AST):
 
         for b in self.branches:
             b.parent = self
+
+    @property
+    def children(self):
+        yield self.atom
+        for b in self.branches:
+            yield b
+        for rb in self.ring_bonds:
+            yield rb
 
     def is_organic(self):
         """
@@ -175,6 +219,13 @@ class Branch(AST):
         if self.bond is not None:
             self.bond.parent = self
 
+    @property
+    def children(self):
+        if self.bond is not None:
+            yield self.bond
+
+        yield self.chain
+
 
 class RingBond(AST):
     """AST element: RingBond (``(bond | DOT) ? ring_id``)
@@ -273,7 +324,22 @@ class Bond(AST):
         except KeyError:
             return 0
 
-    def __eq__(self, other):
+    def same_category(self, other):
+        """Determine if two bonds are of the same category, used for ring bonds.
+
+        The categories are:
+
+        + If one of the bond is implicit: simple or aromatic for the other (``-``,``/``,``\\``, ``:``) ;
+        + If the other is explicit:
+
+          + Around double bond (``/``,``\\``) ;
+          + Same symbol.
+
+        :param other: the other bond
+        :type other: str|Bond
+        :rtype: bool
+        """
+
         if other is None:
             symbol = None
         elif type(other) is Bond:
@@ -284,7 +350,7 @@ class Bond(AST):
             raise TypeError(other)
 
         if symbol is None:
-            return self.symbol in ['-', '/', '\\']
+            return self.symbol in ['-', '/', '\\', ':']
         if self.symbol in ['/', '\\'] and symbol in ['/', '\\']:
             return True
         else:

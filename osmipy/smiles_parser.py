@@ -230,7 +230,7 @@ class Parser:
             else:  # connect
                 other_rb = self._ring_ids[i]
                 if rb.bond is not None and other_rb.bond is not None:
-                    if rb.bond != other_rb.bond:
+                    if not rb.bond.same_category(other_rb.bond):
                         raise ParserException(
                             self.current_token, 'ring id {}: not the same type of bond at the two ends'.format(i))
 

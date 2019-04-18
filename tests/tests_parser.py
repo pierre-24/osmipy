@@ -5,6 +5,10 @@ from osmipy import lexer, smiles_parser, smiles_ast
 
 class ParserTestCase(OSmiPyTestCase):
 
+    @staticmethod
+    def parse(s):
+        return smiles_parser.Parser(lexer.Lexer(s)).smiles()
+
     def test_parser(self):
         """Test the parser (on a rather simple string)"""
 
@@ -107,6 +111,38 @@ class ParserTestCase(OSmiPyTestCase):
         self.assertEqual(rx.left.ring_bonds[0].target, rx.right.right.left)
         self.assertEqual(rx.left, rx.right.right.left.ring_bonds[0].target)
 
+    def test_children_and_descendants(self):
+
+        smiles = ParserTestCase.parse('Cl\\C=C/F')
+
+        # children
+        children = list(smiles.children)
+
+        self.assertIn(smiles.left, children)
+        self.assertIn(smiles.bond, children)
+        self.assertIn(smiles.right, children)
+
+        self.assertNotIn(smiles.right.left, children)
+
+        # descendants
+        descendants = list(smiles.descendants)
+        self.assertEqual(len(descendants), 14)
+
+        self.assertEqual(len([i for i in descendants if type(i) is smiles_ast.Atom]), 4)  # Cl, C, C, F
+        self.assertEqual(len([i for i in descendants if type(i) is smiles_ast.BranchedAtom]), 4)  # Same as above
+        self.assertEqual(len([i for i in descendants if type(i) is smiles_ast.Bond]), 3)  # /, \, =
+        self.assertEqual(len([i for i in descendants if type(i) is smiles_ast.Chain]), 3)
+
+        # parent
+        f_atom = descendants[-1]
+        self.assertIs(type(f_atom), smiles_ast.Atom)
+        self.assertIs(type(f_atom.parent), smiles_ast.BranchedAtom)
+
+        # parents
+        parents = list(f_atom.parents)
+        self.assertEqual(len(parents), 5)  # BranchedAtom + 4 Chain
+        self.assertEqual(len([i for i in parents if type(i) is smiles_ast.Chain]), 4)
+
     def test_parse_ring_bond(self):
         """Specific problematic ring bond cases (thus raising errors)"""
 
@@ -141,5 +177,5 @@ class ParserTestCase(OSmiPyTestCase):
         ]
 
         for smi, hcount in to_test:
-            node = smiles_parser.Parser(lexer.Lexer(smi)).smiles()
+            node = ParserTestCase.parse(smi)
             self.assertEqual(hcount, node.left.implicit_hcount(), msg=smi)
