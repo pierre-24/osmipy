@@ -13,7 +13,7 @@ class ParserTestCase(OSmiPyTestCase):
     @staticmethod
     def interpret(ast):
         """Get a string representation of the AST"""
-        return smiles.Interpreter(ast).interpret()
+        return smiles.Interpreter(ast)()
 
     def test_parser(self):
         """Test the parser (on a rather simple string)"""
@@ -59,14 +59,14 @@ class ParserTestCase(OSmiPyTestCase):
         # symbols and hcounts
         self.assertEqual(r.left.branches[0].bond.symbol, rx.left.branches[0].bond.symbol)
         self.assertEqual(r.left.branches[0].chain.left.atom.symbol, rx.left.branches[0].chain.left.atom.symbol)  # -Cl
-        self.assertEqual(r.left.branches[0].chain.left.implicit_hcount(), 0)
+        self.assertEqual(r.left.branches[0].chain.left.implicit_hcount, 0)
         self.assertEqual(r.bond.symbol, rx.bond.symbol)
         self.assertEqual(r.left.atom.symbol, rx.left.atom.symbol)  # sp² C
-        self.assertEqual(r.left.implicit_hcount(), 1)
+        self.assertEqual(r.left.implicit_hcount, 1)
         self.assertEqual(r.right.bond.symbol, rx.right.bond.symbol)
         self.assertEqual(r.right.left.atom.symbol, rx.right.left.atom.symbol)  # sp² C
         self.assertEqual(r.right.right.left.atom.symbol, rx.right.right.left.atom.symbol)  # -OH
-        self.assertEqual(r.right.right.left.implicit_hcount(), 1)
+        self.assertEqual(r.right.right.left.implicit_hcount, 1)
 
         # parent-child
         self.assertEqual(r.parent, None)
@@ -104,11 +104,11 @@ class ParserTestCase(OSmiPyTestCase):
 
         # symbols and hcount
         self.assertEqual(r.left.atom.symbol, rx.left.atom.symbol)
-        self.assertEqual(rx.left.implicit_hcount(), 2)  # sp³ C
+        self.assertEqual(rx.left.implicit_hcount, 2)  # sp³ C
         self.assertEqual(r.right.left.atom.symbol, rx.right.left.atom.symbol)
-        self.assertEqual(rx.right.left.implicit_hcount(), 2)  # sp³ C
+        self.assertEqual(rx.right.left.implicit_hcount, 2)  # sp³ C
         self.assertEqual(r.right.right.left.atom.symbol, rx.right.right.left.atom.symbol)
-        self.assertEqual(rx.right.right.left.implicit_hcount(), 2)  # sp³ C
+        self.assertEqual(rx.right.right.left.implicit_hcount, 2)  # sp³ C
 
         # ring bonds
         self.assertEqual(type(r.left.ring_bonds[0]), type(rx.left.ring_bonds[0]))
@@ -153,7 +153,7 @@ class ParserTestCase(OSmiPyTestCase):
 
         for smi, hcount in to_test:
             node = ParserTestCase.parse(smi)
-            self.assertEqual(hcount, node.left.implicit_hcount(), msg=smi)
+            self.assertEqual(hcount, node.left.implicit_hcount, msg=smi)
 
 
 class ASTTestCase(OSmiPyTestCase):

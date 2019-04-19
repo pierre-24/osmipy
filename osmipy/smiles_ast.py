@@ -206,6 +206,10 @@ class Chain(AST):
             raise NotAChildError(child)
 
 
+class NotOrganicException(Exception):
+    pass
+
+
 class BranchedAtom(AST):
     """AST element: BranchedAtom (``branched_atom``)
 
@@ -293,83 +297,84 @@ class BranchedAtom(AST):
         else:
             raise NotAChildError(child)
 
-    def is_organic(self):
+    def _bond_order_with(self, neighbour, look_left=False):
+        """determine the bond order with a given neighbour
+
+        :param neighbour: the neighbour to ``self``
+        :type neighbour: Chain|RingBond|Branch
+        :param look_left: in a chain, look in the ``left`` branch
+        :type look_left: bool
+        :rtype: int
         """
 
-        :rtype: bool
-        """
-        return self._atom.is_organic()
+        is_other_aromatic = False
+        bond = neighbour.bond
 
-    def is_aromatic(self):
-        """
+        if type(neighbour) is RingBond:
+            if bond is None and neighbour.target is not None:
+                bond = neighbour.target.ring_bonds[
+                    next(i for i, a in enumerate(neighbour.target.ring_bonds) if neighbour.parent == a.target)].bond
 
-        :rtype: bool
-        """
-        return self._atom.is_aromatic()
+        if bond is None:
+            if self._atom.aromatic:
+                if type(neighbour) is RingBond:
+                    is_other_aromatic = neighbour.target.atom.aromatic
+                elif type(neighbour) is Branch:
+                    is_other_aromatic = neighbour.chain.left.atom.aromatic
+                elif type(neighbour) is Chain:
+                    if not look_left:
+                        is_other_aromatic = neighbour.right.left.atom.aromatic
+                    else:
+                        is_other_aromatic = neighbour.left.aromatic
+            bo = 1.5 if (self._atom.aromatic and is_other_aromatic) else 1
+        else:
+            bo = bond.bond_order
 
+        return bo
+
+    @property
     def implicit_hcount(self):
-        """Determine the implicit hydrogen count by making the difference between the sum of all bond orders and
+        """
+        Determine the implicit hydrogen count by making the difference between the sum of all bond orders and
         the "normal valence" of the atom.
 
-        **Only for the atom in the "organic" subset, not bracketed and validated!**
+        **Only works for the atom in the "organic" subset**
 
         :rtype: int
         """
-        def bond_order(other, is_aromatic, look_left=False):
-            is_other_aromatic = False
-            bond = other.bond
-            if type(other) is RingBond:
-                if bond is None and other.target is not None:
-                    bond = other.target.ring_bonds[
-                        next(i for i, a in enumerate(other.target.ring_bonds) if other.parent == a.target)].bond
-            if bond is None:
-                if is_aromatic:
-                    if type(other) is RingBond:
-                        is_other_aromatic = other.target.is_aromatic()
-                    elif type(other) is Branch:
-                        is_other_aromatic = other.chain.left.is_aromatic()
-                    elif type(other) is Chain:
-                        if not look_left:
-                            is_other_aromatic = other.right.left.is_aromatic()
-                        else:
-                            is_other_aromatic = other.left.is_aromatic()
-                bo = 1.5 if (is_aromatic and is_other_aromatic) else 1
+
+        if not self._atom.organic or self._atom.bracketed:
+            raise NotOrganicException(self._atom)
+
+        total_bonds = 0
+
+        if self.parent.parent is not None:
+            total_bonds = self._bond_order_with(self.parent.parent, look_left=True)
+
+        if self.parent.right is not None:
+            total_bonds += self._bond_order_with(self.parent)
+
+        for i in self.ring_bonds:
+            total_bonds += self._bond_order_with(i)
+        for i in self.branches:
+            total_bonds += self._bond_order_with(i)
+
+        if total_bonds != int(total_bonds):
+            warnings.warn('fractional bond_order of {:.1f}'.format(total_bonds), category=RuntimeWarning)
+
+        total_bonds = int(total_bonds)
+
+        normal_valences = NORMAL_VALENCES[self._atom.atom_symbol()]
+
+        for v in normal_valences:
+            if v < total_bonds:
+                continue
             else:
-                bo = bond.bond_order()
+                return v - total_bonds
 
-            return bo
+        return 0  # hypervalent atom
 
-        if not self.is_organic() or self._atom.is_bracketed():
-            return -1
-        else:
-            aromatic = self.is_aromatic()
-            total_bonds = 0
-
-            if self.parent.right is not None:
-                total_bonds = bond_order(self.parent, aromatic)
-
-            if self.parent.parent is not None:
-                total_bonds += bond_order(self.parent.parent, aromatic, look_left=True)
-
-            for i in self.ring_bonds:
-                total_bonds += bond_order(i, aromatic)
-            for i in self.branches:
-                total_bonds += bond_order(i, aromatic)
-
-            if total_bonds != int(total_bonds):
-                warnings.warn('fractional bond_order of {:.1f}'.format(total_bonds), category=RuntimeWarning)
-
-            total_bonds = int(total_bonds)
-
-            normal_valences = NORMAL_VALENCES[self._atom.atom_symbol()]
-            for v in normal_valences:
-                if v < total_bonds:
-                    continue
-                else:
-                    return v - total_bonds
-
-            return 0
-
+    @property
     def number_of_neighbours(self):
         """Return the number of neighbours that the atom have
 
@@ -384,10 +389,10 @@ class BranchedAtom(AST):
 
         n += len(self.branches) + len(self.ring_bonds)
 
-        if self._atom.is_bracketed():
+        if self._atom.bracketed():
             n += self._atom.hcount
         else:
-            n += self.implicit_hcount()
+            n += self.implicit_hcount
 
         return n
 
@@ -543,7 +548,8 @@ class Atom(AST):
     def contents(self):
         raise AttributeError('`{}` object has no `contents`'.format(type(self).__name__))
 
-    def is_bracketed(self):
+    @property
+    def bracketed(self):
         """Should this atom be bracketed?
 
         :rtype: bool
@@ -555,14 +561,16 @@ class Atom(AST):
             self.klass > 0 or \
             self.symbol not in ORGANIC_SUBSET + [WILDCARD]
 
-    def is_organic(self):
+    @property
+    def organic(self):
         """
 
         :rtype: bool
         """
         return self.symbol in ORGANIC_SUBSET
 
-    def is_aromatic(self):
+    @property
+    def aromatic(self):
         """
 
         :rtype: bool
@@ -570,7 +578,7 @@ class Atom(AST):
         return self.symbol in AROMATIC_SYMBOLS
 
     def atom_symbol(self):
-        if self.is_aromatic():
+        if self.aromatic:
             return self.symbol.title()
         else:
             return self.symbol
@@ -589,6 +597,7 @@ class Bond(AST):
         # set
         self.symbol = symbol
 
+    @property
     def bond_order(self):
         if self.symbol is None:
             return 1

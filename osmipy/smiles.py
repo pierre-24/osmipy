@@ -14,7 +14,7 @@ class Interpreter(visitor.NodeVisitor):
     def __init__(self, node):
         self.node = node
 
-    def interpret(self):
+    def __call__(self):
         return self.visit(self.node)
 
     def visit_chain(self, node):
@@ -54,7 +54,7 @@ class Interpreter(visitor.NodeVisitor):
         :type node: qcip_tools.smiles.Atom
         :rtype: str
         """
-        bracketed = node.is_bracketed()
+        bracketed = node.bracketed
         charge = ''
         if node.charge != 0:
             charge = '+' if node.charge > 0 else '-'
@@ -108,15 +108,15 @@ class Interpreter(visitor.NodeVisitor):
         return node.symbol if node.symbol is not None else ''
 
 
-class UnicityException(Exception):
+class DuplicateAtomIdException(Exception):
     pass
 
 
 class AtomIdCheckAndUpdate(visitor.ASTVisitor):
-    """Visitor that
+    """Visitor that keeps a dictionary of the atoms id, ``atom_ids``, and check that they are all uniques.
+    In other words, it does the job of the parser for nodes that may have been constructed from scratch.
 
-    Keeps a dictionary of the atoms id, ``atom_ids``, and check that they are all uniques.
-    In other words,  it does the job of the parser for nodes that may have been constructed from scratch.
+    If an atom id is negative, sets it to a positive and unique value.
 
     :param node: the node
     :type node: Chain
@@ -125,24 +125,28 @@ class AtomIdCheckAndUpdate(visitor.ASTVisitor):
         super().__init__(node)
 
         self.atom_ids = {}
+        self.atoms_no_id = []
         self.next_atom_id = 0
 
-    def validate(self, shift_id=0):
-        """Validate the AST
+    def __call__(self, shift_id=0):
+        """Does the job
 
         :param shift_id: shift all atom id
         :type shift_id: int
         """
+
         if self.node is not None:
-            self.atom_ids = {}
-            self.next_atom_id = 0
             self._start(shift_id=shift_id)
 
+            for i in self.atoms_no_id:
+                i.atom_id = self.next_atom_id
+                self.next_atom_id += 1
+
     def visit_atom(self, node, shift_id=0, *args, **kwargs):
-        """Just update the list of ids
+        """Just update the list of ids, or mark the atom in order for it to get an id.
 
         :param node: node
-        :type node: qcip_tools.smiles.Atom
+        :type node: osmipy.smiles_ast.Atom
         :param shift_id: shift all atom id
         :type shift_id: int
         """
@@ -158,19 +162,9 @@ class AtomIdCheckAndUpdate(visitor.ASTVisitor):
                 if self.next_atom_id <= node.atom_id:
                     self.next_atom_id = node.atom_id + 1
             else:
-                raise UnicityException('two atoms share the same id: {}!'.format(node.atom_id))
-
-    def update(self, fragment):
-        """Update the validator with a new fragment
-
-        :param fragment: the new fragment
-        :type fragment: Chain
-        """
-
-        validator = AtomIdCheckAndUpdate(fragment)
-        validator.validate(shift_id=self.next_atom_id)
-        self.atom_ids.update(validator.atom_ids)
-        self.next_atom_id = validator.next_atom_id
+                raise DuplicateAtomIdException('two atoms share the same id: {}!'.format(node.atom_id))
+        else:
+            self.atoms_no_id.append(node)
 
 
 class SMILES:
@@ -181,6 +175,12 @@ class SMILES:
     :param input_: input
     :type input_: Chain|str
     """
+
+    #: Interpret the AST and gives a string
+    interpreter = Interpreter
+    #: Check (for duplicates) and update (shift or set) the atom id
+    id_checker = AtomIdCheckAndUpdate
+
     def __init__(self, input_=''):
         self.node = None
         if type(input_) is str:
@@ -190,15 +190,15 @@ class SMILES:
             self.next_atom_id = parser_obj.next_atom_id
         elif type(input_) is osmipy.smiles_ast.Chain:
             self.node = input_
-            validator = AtomIdCheckAndUpdate(self.node)
-            validator.validate()
+            validator = self.id_checker(self.node)
+            validator()
             self.atom_ids = validator.atom_ids
             self.next_atom_id = validator.next_atom_id
         else:
             raise TypeError(input_)
 
     def __repr__(self):
-        return Interpreter(self.node).interpret()
+        return self.interpreter(self.node)()
 
     def add_fragment(self, other, validate=True):
         """Add another fragment at the end using a DOT bond
@@ -225,9 +225,9 @@ class SMILES:
         c.bond = osmipy.smiles_ast.Bond('.')
 
         if validate:
-            updater = AtomIdCheckAndUpdate(node)
-            updater.validate(shift_id=self.next_atom_id)
-            ns.atom_ids.update(updater.atom_ids)
+            validator = self.id_checker(node)
+            validator(shift_id=self.next_atom_id)
+            ns.atom_ids.update(validator.atom_ids)
 
         return ns
 
@@ -239,7 +239,7 @@ class SMILES:
 
         :param atom_id: the id
         :type atom_id: int
-        :rtype: qcip_tools.smiles.Atom
+        :rtype: osmipy.smiles_ast.Atom
         """
 
         return self.atom_ids[atom_id]
