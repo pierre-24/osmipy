@@ -118,15 +118,17 @@ class AST:
         except StopIteration:
             return None
 
-    def _remove_child(self, child):
-        raise NotImplementedError('_remove_child()')
+    def signal_remove(self):
+        """Signal that the node will be removed, so that ring bonds get cleaned up
 
-    def _before_delete(self):
-        """Eventual cleanup before deletion
+        The signal is broadcasted to the children
         """
 
         for c in self.children:
-            c._before_delete()
+            c.signal_remove()
+
+    def _remove_child(self, child):
+        raise NotImplementedError('_remove_child()')
 
     def remove(self):
         """Remove itself from the parent
@@ -135,7 +137,7 @@ class AST:
         if self.parent is None:
             raise AttributeError('`self` has no parent')
 
-        self._before_delete()
+        self.signal_remove()
         return self.parent._remove_child(self)
 
 
@@ -489,7 +491,7 @@ class RingBond(AST):
 
         return
 
-    def _before_delete(self):
+    def signal_remove(self):
         """Just remove the other ring bond in case of deletion
         """
 
@@ -499,7 +501,7 @@ class RingBond(AST):
         except:  # something was wrong (parent is already gone, or ring bond was already deleted) ...
             pass  # ... Never mind.
 
-        super()._before_delete()
+        super().signal_remove()
 
     def _remove_child(self, child):
         if child == self._bond:
