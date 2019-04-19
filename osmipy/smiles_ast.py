@@ -10,6 +10,7 @@ class NotAChildError(ValueError):
 class AST:
     """AST element
     """
+
     def __init__(self):
         self.parent = None
 
@@ -121,7 +122,7 @@ class AST:
     def signal_remove(self):
         """Signal that the node will be removed, so that ring bonds get cleaned up
 
-        The signal is broadcasted to the children
+        The signal is broadcasted to the children (and so all)
         """
 
         for c in self.children:
@@ -139,6 +140,25 @@ class AST:
 
         self.signal_remove()
         return self.parent._remove_child(self)
+
+    def _replace_child_with(self, child, node):
+        """Replace a children by another (at the same position)
+        """
+
+        raise NotImplementedError('_replace_child()')
+
+    def replace_with(self, node):
+        """Replace itself by another node
+
+        :param node: the node with which ``self`` will be replaced
+        :type node: AST
+        """
+
+        if self.parent is None:
+            raise AttributeError('`self` has no parent')
+
+        self.signal_remove()
+        self.parent._replace_child_with(self, node)
 
 
 class Chain(AST):
@@ -202,6 +222,16 @@ class Chain(AST):
             self._bond = None
         elif child == self._right:
             self._right = None
+        else:
+            raise NotAChildError(child)
+
+    def _replace_child_with(self, child, node):
+        if child == self._left:
+            self.left = node
+        elif child == self._bond:
+            self.bond = node
+        elif child == self._right:
+            self.right = node
         else:
             raise NotAChildError(child)
 
@@ -297,8 +327,26 @@ class BranchedAtom(AST):
         else:
             raise NotAChildError(child)
 
+    def _replace_child_with(self, child, node):
+        if child == self._atom:
+            self.atom = node
+        elif type(child) is Branch:
+            try:
+                i = self.branches.index(child)
+                self.branches[i] = node
+            except ValueError:
+                raise NotAChildError(child)
+        elif type(child) is RingBond:
+            try:
+                i = self.ring_bonds.index(child)
+                self.ring_bonds[i] = node
+            except ValueError:
+                raise NotAChildError(child)
+        else:
+            raise NotAChildError(child)
+
     def _bond_order_with(self, neighbour, look_left=False):
-        """determine the bond order with a given neighbour
+        """Determine the bond order with a given neighbour
 
         :param neighbour: the neighbour to ``self``
         :type neighbour: Chain|RingBond|Branch
@@ -441,6 +489,16 @@ class Branch(AST):
     def _remove_child(self, child):
         if child == self._chain:
             self._chain = None
+        elif child == self._bond:
+            self._bond = None
+        else:
+            raise NotAChildError(child)
+
+    def _replace_child_with(self, child, node):
+        if child == self._chain:
+            self.chain = node
+        elif child == self._bond:
+            self.bond = node
         else:
             raise NotAChildError(child)
 
@@ -511,6 +569,12 @@ class RingBond(AST):
     def _remove_child(self, child):
         if child == self._bond:
             self._bond = None
+        else:
+            raise NotAChildError(child)
+
+    def _replace_child_with(self, child, node):
+        if child == self._bond:
+            self.bond = node
         else:
             raise NotAChildError(child)
 

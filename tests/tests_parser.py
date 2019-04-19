@@ -210,7 +210,7 @@ class ASTTestCase(OSmiPyTestCase):
         self.assertEqual(self.smiles.right.previous_sibling, self.smiles.bond)
 
     def test_remove(self):
-        """Test node removal"""
+        """Test node removal with `remove()`"""
 
         with self.assertRaises(ValueError):
             self.smiles.left.remove()  # cannot remove a `BranchedAtom`
@@ -248,3 +248,39 @@ class ASTTestCase(OSmiPyTestCase):
         self.assertNotEqual(smiles3.left.ring_bonds, [])
         smiles3.right.right.remove()
         self.assertEqual(smiles3.left.ring_bonds, [])
+
+    def test_replace_with(self):
+        """Test `replace_with()`
+        """
+
+        with self.assertRaises(AttributeError):  # cannot replace if no parent
+            self.smiles.replace_with(ParserTestCase.parse('C'))
+
+        with self.assertRaises(TypeError):  # cannot replace a node with another type of node
+            self.smiles.right.replace_with(smiles_ast.Atom('C'))
+
+        # replace atom
+        self.assertEqual(self.smiles.left.atom.symbol, 'Cl')
+        self.smiles.left.atom.replace_with(smiles_ast.Atom('H', isotope=2))  # change by a deuterium
+        self.assertEqual(self.smiles.left.atom.symbol, 'H')  # atom changed
+        self.assertEqual(self.smiles.left.atom.parent, self.smiles.left)  # parent is set !
+
+        # replace bond on chain
+        self.assertEqual(self.smiles.bond.symbol, '\\')
+        self.smiles.bond.replace_with(smiles_ast.Bond('/'))
+        self.assertEqual(self.smiles.bond.symbol, '/')
+
+        # replace (right) chain
+        self.smiles.right.right.right.replace_with(ParserTestCase.parse('OC'))
+        self.assertEqual(self.smiles.right.right.right.left.atom.symbol, 'O')
+
+        # replace branch
+        self.assertEqual(len(list(self.smiles2.left.branches[0].descendants)), 3)  # Chain + BranchedAtom + Atom
+        self.smiles2.left.branches[0].replace_with(smiles_ast.Branch(ParserTestCase.parse('COC')))
+        self.assertNotEqual(len(list(self.smiles2.left.branches[0].descendants)), 3)
+
+        # replace branched atom (which should also remove the other ring bond)
+        target = self.smiles2.left.ring_bonds[0].target
+        self.smiles2.left.replace_with(smiles_ast.BranchedAtom(atom=smiles_ast.Atom('O')))
+        self.assertEqual(self.smiles2.left.ring_bonds, [])
+        self.assertEqual(target.ring_bonds, [])  # both ends are deleted
