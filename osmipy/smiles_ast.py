@@ -131,14 +131,19 @@ class AST:
     def _remove_child(self, child):
         raise NotImplementedError('_remove_child()')
 
-    def remove(self):
+    def remove(self, signal_remove=True):
         """Remove itself from the parent
+
+        :param signal_remove: use ``signal_remove()`` before
+        :type signal_remove: bool
         """
 
         if self.parent is None:
             raise AttributeError('`self` has no parent')
 
-        self.signal_remove()
+        if signal_remove:
+            self.signal_remove()
+
         return self.parent._remove_child(self)
 
     def _replace_child_with(self, child, node):
@@ -147,17 +152,21 @@ class AST:
 
         raise NotImplementedError('_replace_child()')
 
-    def replace_with(self, node):
+    def replace_with(self, node, signal_remove=True):
         """Replace itself by another node
 
         :param node: the node with which ``self`` will be replaced
         :type node: AST
+        :param signal_remove: use ``signal_remove()`` before
+        :type signal_remove: bool
         """
 
         if self.parent is None:
             raise AttributeError('`self` has no parent')
 
-        self.signal_remove()
+        if signal_remove:
+            self.signal_remove()
+
         self.parent._replace_child_with(self, node)
 
 
@@ -331,15 +340,51 @@ class BranchedAtom(AST):
         if child == self._atom:
             self.atom = node
         elif type(child) is Branch:
+            if type(node) is not Branch:
+                raise TypeError(node)
             try:
                 i = self.branches.index(child)
                 self.branches[i] = node
+                node.parent = self
             except ValueError:
                 raise NotAChildError(child)
         elif type(child) is RingBond:
+            if type(node) is not RingBond:
+                raise TypeError(node)
             try:
                 i = self.ring_bonds.index(child)
                 self.ring_bonds[i] = node
+                node.parent = self
+            except ValueError:
+                raise NotAChildError(child)
+        else:
+            raise NotAChildError(child)
+
+    def _insert_child(self, child, node, after=False):
+        if type(child) is Atom:
+            raise ValueError('cannot insert before/after an `Atom`')
+        elif type(child) is Branch:
+            if type(node) is not Branch:
+                raise TypeError(node)
+            try:
+                i = self.branches.index(child)
+                if not after:
+                    self.branches.insert(i, node)
+                else:
+                    self.branches.insert(i + 1, node)
+                node.parent = self
+            except ValueError:
+                raise NotAChildError(child)
+        elif type(child) is RingBond:
+            if type(node) is not RingBond:
+                raise TypeError(node)
+            try:
+                i = self.ring_bonds.index(child)
+                if not after:
+                    self.ring_bonds.insert(i, node)
+                else:
+                    self.ring_bonds.insert(i + 1, node)
+                node.parent = self
             except ValueError:
                 raise NotAChildError(child)
         else:
@@ -502,6 +547,33 @@ class Branch(AST):
         else:
             raise NotAChildError(child)
 
+    def _insert_child(self, child, node, after=False):
+        raise NotImplementedError('_insert_child()')
+
+    def insert_before(self, node):
+        """Insert a chain before the current one
+
+        :param node: the chain which will be inserted
+        :type node: Chain
+        """
+
+        if self.parent is None:
+            raise AttributeError('`self` has no parent')
+
+        self.parent._insert_child(self, node)
+
+    def insert_after(self, node):
+        """Insert a chain after the current one
+
+        :param node: the chain which will be inserted
+        :type node: Chain
+        """
+
+        if self.parent is None:
+            raise AttributeError('`self` has no parent')
+
+        self.parent._insert_child(self, node, after=True)
+
 
 class RingBond(AST):
     """AST element: RingBond (``(bond | DOT) ? ring_id``)
@@ -577,6 +649,33 @@ class RingBond(AST):
             self.bond = node
         else:
             raise NotAChildError(child)
+
+    def _insert_child(self, child, node, after=False):
+        raise NotImplementedError('_insert_child()')
+
+    def insert_before(self, node):
+        """Insert a ring bond before the current one
+
+        :param node: the ring bond which will be inserted
+        :type node: RingBond
+        """
+
+        if self.parent is None:
+            raise AttributeError('`self` has no parent')
+
+        self.parent._insert_child(self, node)
+
+    def insert_after(self, node):
+        """Insert a ring bond after the current one
+
+        :param node: the ring bond which will be inserted
+        :type node: RingBond
+        """
+
+        if self.parent is None:
+            raise AttributeError('`self` has no parent')
+
+        self.parent._insert_child(self, node, after=True)
 
 
 class Atom(AST):

@@ -284,3 +284,31 @@ class ASTTestCase(OSmiPyTestCase):
         self.smiles2.left.replace_with(smiles_ast.BranchedAtom(atom=smiles_ast.Atom('O')))
         self.assertEqual(self.smiles2.left.ring_bonds, [])
         self.assertEqual(target.ring_bonds, [])  # both ends are deleted
+
+    def test_insert(self):
+        """Test `insert_before()` and `insert_after()` for branches and ring bonds
+        """
+
+        # test with branch:
+        branch = smiles_ast.Branch(ParserTestCase.parse('CC'))
+        self.assertNotEqual(self.smiles2.left.branches[0], branch)
+        self.smiles2.left.branches[0].insert_before(branch)
+        self.assertEqual(self.smiles2.left.branches[0], branch)
+
+        branch.remove()  # remove itself from the AST
+        self.smiles2.left.branches[0].insert_after(branch)
+        self.assertEqual(self.smiles2.left.branches[1], branch)
+
+        # test with ringbond
+        ring_bond_beg = smiles_ast.RingBond(target=branch.chain.right.left, ring_id=2)
+        ring_bond_end = smiles_ast.RingBond(target=self.smiles2.left, ring_id=2)
+
+        branch.chain.right.left.append_ring_bond(ring_bond_end)
+
+        self.assertNotEqual(self.smiles2.left.ring_bonds[0], ring_bond_beg)
+        self.smiles2.left.ring_bonds[0].insert_before(ring_bond_beg)
+        self.assertEqual(self.smiles2.left.ring_bonds[0], ring_bond_beg)
+
+        ring_bond_beg.remove(signal_remove=False)  # do not remove the other ring bond !
+        self.smiles2.left.ring_bonds[0].insert_after(ring_bond_beg)
+        self.assertEqual(self.smiles2.left.ring_bonds[1], ring_bond_beg)
