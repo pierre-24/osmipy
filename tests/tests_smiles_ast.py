@@ -1,6 +1,6 @@
 from tests import OSmiPyTestCase
 
-from osmipy import smiles_parser, smiles_ast
+from osmipy import smiles_parser, smiles_ast, smiles_visitors
 
 
 class ASTTestCase(OSmiPyTestCase):
@@ -174,6 +174,27 @@ class ASTTestCase(OSmiPyTestCase):
         ring_bond_beg.remove(signal_remove=False)  # do not remove the other ring bond !
         self.smiles2.left.ring_bonds[0].insert_after(ring_bond_beg)
         self.assertEqual(self.smiles2.left.ring_bonds[1], ring_bond_beg)
+
+    def test_validation(self):
+
+        # test validation
+        s = smiles_ast.SMILES()
+        s.chain = smiles_ast.Chain(smiles_ast.BranchedAtom(smiles_ast.Atom('O')))
+
+        self.assertEqual(s.chain.left.atom.atom_id, -1)
+        s.validate()
+        self.assertEqual(s.chain.left.atom.atom_id, 0)
+        self.assertEqual(s.get_atom(0), s.chain.left.atom)
+
+        # test duplicate
+        s.chain.right = smiles_ast.Chain(smiles_ast.BranchedAtom(smiles_ast.Atom('C', atom_id=0)))  # duplicate
+
+        with self.assertRaises(smiles_visitors.DuplicateAtomIdException):
+            s.validate()
+
+        # now remove duplicate
+        s.validate(remove_duplicate=True)
+        self.assertEqual(s[1], s.chain.right.left.atom)
 
     def test_get_atom(self):
         s = smiles_parser.parse('CCO')

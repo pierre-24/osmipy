@@ -221,7 +221,7 @@ class AtomIdCheckAndUpdate(ASTVisitor):
         self.atoms_no_id = []
         self.next_atom_id = 0
 
-    def __call__(self, shift_id=0):
+    def __call__(self, shift_id=0, remove_duplicate=False):
         """Does the job
 
         :param shift_id: shift all atom id
@@ -229,19 +229,25 @@ class AtomIdCheckAndUpdate(ASTVisitor):
         """
 
         if self.node is not None:
-            super().__call__(shift_id=shift_id)
+            super().__call__(shift_id=shift_id, remove_duplicate=remove_duplicate)
+
+            if self.next_atom_id == 0:
+                self.next_atom_id = shift_id
 
             for i in self.atoms_no_id:
                 i.atom_id = self.next_atom_id
+                self.atom_ids[self.next_atom_id] = i
                 self.next_atom_id += 1
 
-    def visit_atom(self, node, shift_id=0, *args, **kwargs):
+    def visit_atom(self, node, shift_id=0, remove_duplicate=False, *args, **kwargs):
         """Just update the list of ids, or mark the atom in order for it to get an id.
 
         :param node: node
         :type node: osmipy.smiles_ast.Atom
         :param shift_id: shift all atom id
         :type shift_id: int
+        :param remove_duplicate: give a new id to duplicate instead of raising an error
+        :type remove_duplicate: bool
         """
 
         super().visit_atom(node, *args, **kwargs)
@@ -255,6 +261,9 @@ class AtomIdCheckAndUpdate(ASTVisitor):
                 if self.next_atom_id <= node.atom_id:
                     self.next_atom_id = node.atom_id + 1
             else:
-                raise DuplicateAtomIdException('two atoms share the same id: {}!'.format(node.atom_id))
+                if not remove_duplicate:
+                    raise DuplicateAtomIdException('two atoms share the same id: {}!'.format(node.atom_id))
+                else:
+                    self.atoms_no_id.append(node)
         else:
             self.atoms_no_id.append(node)

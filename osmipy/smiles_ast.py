@@ -186,7 +186,7 @@ class SMILES(AST):
     #: A visitor to check and eventually update atoms id
     id_checker = smiles_visitors.AtomIdCheckAndUpdate
 
-    def __init__(self, chain, atoms_id=None):
+    def __init__(self, chain=None, atoms_id=None):
         super().__init__()
 
         self._chain = None
@@ -194,15 +194,12 @@ class SMILES(AST):
         self._next_atom_id = 0
 
         # set
-        self.chain = chain
-        if atoms_id is not None and type(atoms_id) is dict:
-            self._atoms_id = atoms_id
-            self._next_atom_id = max(atoms_id.keys())
-        else:
-            visitor = self.id_checker(self)
-            visitor()
-            self._atoms_id = visitor.atom_ids
-            self._next_atom_id = visitor.next_atom_id
+        if chain is not None:
+            self.chain = chain
+
+            if atoms_id is not None and type(atoms_id) is dict:
+                self._atoms_id = atoms_id
+                self._next_atom_id = max(atoms_id.keys())
 
     @property
     def chain(self):
@@ -233,6 +230,18 @@ class SMILES(AST):
 
     def replace_with(self, node, signal_remove=True):
         raise NotImplementedError('replace_with()')
+
+    def validate(self, remove_duplicate=False):
+        """Update atoms id
+
+        :param remove_duplicate: do not raise an error when duplicate, but instead give a new (unique) one
+        :type remove_duplicate: bool
+        """
+
+        visitor = self.id_checker(self)
+        visitor(remove_duplicate=remove_duplicate)
+        self._atoms_id = visitor.atom_ids
+        self._next_atom_id = visitor.next_atom_id
 
     def get_atom(self, atom_id):
         """Get the atom corresponding to the given id
