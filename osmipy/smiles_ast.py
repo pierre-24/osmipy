@@ -1,5 +1,6 @@
 import warnings
 
+from osmipy import smiles_visitors
 from osmipy.tokens import *
 
 
@@ -13,6 +14,9 @@ class AST:
 
     def __init__(self):
         self.parent = None
+
+    def __str__(self):
+        return smiles_visitors.Interpreter(self)()
 
     def _set_if(self, value, attr, type_):
         if type(value) is not type_:
@@ -170,6 +174,119 @@ class AST:
         self.parent._replace_child_with(self, node)
 
 
+class SMILES(AST):
+    """AST element (``smiles``)
+
+    :param chain: the chain
+    :type chain: Chain
+    :param atoms_id: a dictionary with the different atoms id. If not provided, ``self.id_checker`` will be used
+    :type atoms_id: dict
+    """
+
+    #: A visitor to check and eventually update atoms id
+    id_checker = smiles_visitors.AtomIdCheckAndUpdate
+
+    def __init__(self, chain, atoms_id=None):
+        super().__init__()
+
+        self._chain = None
+        self._atoms_id = {}
+        self._next_atom_id = 0
+
+        # set
+        self.chain = chain
+        if atoms_id is not None and type(atoms_id) is dict:
+            self._atoms_id = atoms_id
+            self._next_atom_id = max(atoms_id.keys())
+        else:
+            visitor = self.id_checker(self)
+            visitor()
+            self._atoms_id = visitor.atom_ids
+            self._next_atom_id = visitor.next_atom_id
+
+    @property
+    def chain(self):
+        return self._chain
+
+    @chain.setter
+    def chain(self, value):
+        self._set_if(value, '_chain', Chain)
+
+    @property
+    def children(self):
+        yield self._chain
+
+    def _remove_child(self, child):
+        if child == self._chain:
+            self._chain = None
+        else:
+            raise NotAChildError(child)
+
+    def _replace_child_with(self, child, node):
+        if child == self._chain:
+            self.chain = node
+        else:
+            raise NotAChildError(child)
+
+    def remove(self, signal_remove=True):
+        raise NotImplementedError('remove()')
+
+    def replace_with(self, node, signal_remove=True):
+        raise NotImplementedError('replace_with()')
+
+    def get_atom(self, atom_id):
+        """Get the atom corresponding to the given id
+
+        :param atom_id: the id
+        :type atom_id: int
+        :rtype: osmipy.smiles_ast.Atom
+        """
+
+        return self._atoms_id[atom_id]
+
+    def __getitem__(self, item):
+        if type(item) is not int:
+            raise TypeError(item)
+
+        return self.get_atom(item)
+
+    def insert_fragment(self, other, validate=True):
+        """Add a fragment at the end using a DOT bond
+
+        :param other: other smile
+        :type other: SMILES|Chain
+        :param validate: (re)validate the new fragment (otherwise, ``atom_ids`` is not updated!)
+        :type validate: bool
+        :rtype: SMILES
+        """
+
+        c = self._chain
+        for i in self._chain.next_chains:
+            c = i
+
+        if type(other) is Chain:
+            c.right = other
+        elif type(other) is SMILES:
+            c.right = other.chain
+        else:
+            raise TypeError(other)
+
+        c.bond = Bond('.')
+
+        if validate:
+            updater = self.id_checker(c.right)
+            updater(shift_id=self._next_atom_id)
+            self._atoms_id.update(updater.atom_ids)
+            self._next_atom_id = updater.next_atom_id
+
+    def __iadd__(self, other):
+        if type(other) not in [SMILES, Chain]:
+            raise TypeError(other)
+
+        self.insert_fragment(other)
+        return self
+
+
 class Chain(AST):
     """AST element: Chain (``chain``)
 
@@ -243,6 +360,14 @@ class Chain(AST):
             self.right = node
         else:
             raise NotAChildError(child)
+
+    @property
+    def next_chains(self):
+        if self._right is not None:
+            yield self._right
+            yield from self._right.next_chains
+
+        return
 
 
 class NotOrganicException(Exception):
@@ -399,6 +524,9 @@ class BranchedAtom(AST):
         :type look_left: bool
         :rtype: int
         """
+
+        if type(neighbour) is SMILES:
+            return 0
 
         is_other_aromatic = False
         bond = neighbour.bond

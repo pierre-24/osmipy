@@ -14,8 +14,8 @@ Currently the library is able to
 Minimal example:
 
 ```python
-from osmipy import smiles
-obj = smiles.SMILES('C12(CCCCC1)CCCCC2')
+from osmipy import smiles_parser
+obj = smiles_parser.parse('C12(CCCCC1)CCCCC2')
 
 # AST starts in `obj.node`
 # TODO: more stuffs

@@ -1,8 +1,91 @@
-import copy
-
-import osmipy.smiles_ast
-from osmipy import smiles_parser, lexer, visitor
+from osmipy import visitor
 from osmipy.tokens import *
+
+
+class ASTVisitor(visitor.NodeVisitor):
+    """Generic visitor for the SMILES AST
+
+    :param node: node
+    :type node: Chain
+    """
+    def __init__(self, node):
+        self.node = node
+
+    def __call__(self, *args, **kwargs):
+        """Start the visit
+        """
+        self.visit(self.node, *args, **kwargs)
+
+    def visit_smiles(self, node, *args, **kwargs):
+        """
+
+        :param node: node
+        :type node: osmipy.smiles_ast.SMILES
+        """
+        self.visit(node.chain, *args, **kwargs)
+
+    def visit_chain(self, node, *args, **kwargs):
+        """
+
+        :param node: node
+        :type node: osmipy.smiles_ast.Chain
+        """
+        self.visit(node.left, *args, **kwargs)
+        if node.bond is not None:
+            self.visit(node.bond, *args, **kwargs)
+        if node.right is not None:
+            self.visit(node.right, *args, **kwargs)
+
+    def visit_branchedatom(self, node, *args, **kwargs):
+        """
+
+        :param node: node
+        :type node: osmipy.smiles_ast.BranchedAtom
+        """
+
+        self.visit(node.atom, *args, **kwargs)
+
+        for ringbond in node.ring_bonds:
+            self.visit(ringbond, *args, **kwargs)
+        for branch in node.branches:
+            self.visit(branch, *args, **kwargs)
+
+    def visit_atom(self, node, *args, **kwargs):
+        """
+
+        :param node: node
+        :type node: qcip_tools.smiles.Atom
+        """
+        pass
+
+    def visit_bond(self, node, *args, **kwargs):
+        """
+
+        :param node: node
+        :type node: qcip_tools.smiles.Bond
+        """
+        pass
+
+    def visit_branch(self, node, *args, **kwargs):
+        """
+
+        :param node: node
+        :type node: osmipy.smiles_ast.Branch
+        """
+        if node.bond is not None:
+            self.visit(node.bond, *args, **kwargs)
+
+        self.visit(node.chain, *args, **kwargs)
+
+    def visit_ringbond(self, node, *args, **kwargs):
+        """
+
+        :param node: node
+        :type node: osmipy.smiles_ast.RingBond
+        """
+
+        if node.bond is not None:
+            self.visit(node.bond, *args, **kwargs)
 
 
 class Interpreter(visitor.NodeVisitor):
@@ -17,11 +100,21 @@ class Interpreter(visitor.NodeVisitor):
     def __call__(self):
         return self.visit(self.node)
 
+    def visit_smiles(self, node):
+        """
+
+        :param node: node
+        :type node: osmipy.smiles_ast.SMILES
+        :rtype: str
+        """
+
+        return self.visit(node.chain)
+
     def visit_chain(self, node):
         """
 
         :param node: node
-        :type node: Chain
+        :type node: osmipy.smiles_ast.Chain
         :rtype: str
         """
         r = self.visit(node.left)
@@ -36,7 +129,7 @@ class Interpreter(visitor.NodeVisitor):
         """
 
         :param node: node
-        :type node: BranchedAtom
+        :type node: osmipy.smiles_ast.BranchedAtom
         :rtype: str
         """
         r = self.visit(node.atom)
@@ -75,7 +168,7 @@ class Interpreter(visitor.NodeVisitor):
         """
 
         :param node: node
-        :type node: Branch
+        :type node: osmipy.smiles_ast.Branch
         :rtype: str
         """
         if node.bond is not None:
@@ -90,7 +183,7 @@ class Interpreter(visitor.NodeVisitor):
         """
 
         :param node: node
-        :type node: RingBond
+        :type node: osmipy.smiles_ast.RingBond
         :rtype: str
         """
         return '{}{}{}'.format(
@@ -102,7 +195,7 @@ class Interpreter(visitor.NodeVisitor):
         """
 
         :param node: node
-        :type node: Bond
+        :type node: osmipy.smiles_ast.Bond
         :rtype: str
         """
         return node.symbol if node.symbol is not None else ''
@@ -112,7 +205,7 @@ class DuplicateAtomIdException(Exception):
     pass
 
 
-class AtomIdCheckAndUpdate(visitor.ASTVisitor):
+class AtomIdCheckAndUpdate(ASTVisitor):
     """Visitor that keeps a dictionary of the atoms id, ``atom_ids``, and check that they are all uniques.
     In other words, it does the job of the parser for nodes that may have been constructed from scratch.
 
@@ -136,7 +229,7 @@ class AtomIdCheckAndUpdate(visitor.ASTVisitor):
         """
 
         if self.node is not None:
-            self._start(shift_id=shift_id)
+            super().__call__(shift_id=shift_id)
 
             for i in self.atoms_no_id:
                 i.atom_id = self.next_atom_id
@@ -165,81 +258,3 @@ class AtomIdCheckAndUpdate(visitor.ASTVisitor):
                 raise DuplicateAtomIdException('two atoms share the same id: {}!'.format(node.atom_id))
         else:
             self.atoms_no_id.append(node)
-
-
-class SMILES:
-    """SMILES object
-
-    This object is immutable.
-
-    :param input_: input
-    :type input_: Chain|str
-    """
-
-    #: Interpret the AST and gives a string
-    interpreter = Interpreter
-    #: Check (for duplicates) and update (shift or set) the atom id
-    id_checker = AtomIdCheckAndUpdate
-
-    def __init__(self, input_=''):
-        self.node = None
-        if type(input_) is str:
-            parser_obj = smiles_parser.Parser(lexer.Lexer(input_))
-            self.node = parser_obj.smiles()
-            self.atom_ids = parser_obj.atom_ids
-            self.next_atom_id = parser_obj.next_atom_id
-        elif type(input_) is osmipy.smiles_ast.Chain:
-            self.node = input_
-            validator = self.id_checker(self.node)
-            validator()
-            self.atom_ids = validator.atom_ids
-            self.next_atom_id = validator.next_atom_id
-        else:
-            raise TypeError(input_)
-
-    def __repr__(self):
-        return self.interpreter(self.node)()
-
-    def add_fragment(self, other, validate=True):
-        """Add another fragment at the end using a DOT bond
-
-        :param other: other smile
-        :type other: SMILES|Chain
-        :param validate: (re)validate the new fragment (otherwise, ``atom_ids`` is not updated!)
-        :type validate: bool
-        :rtype: SMILES
-        """
-
-        ns = copy.deepcopy(self)
-        c = ns.node
-        while c.right is not None:
-            c = c.right
-
-        if type(other) is SMILES:
-            node = copy.deepcopy(other.node)
-        else:
-            node = copy.deepcopy(other)
-
-        c.right = node
-        node.parent = c
-        c.bond = osmipy.smiles_ast.Bond('.')
-
-        if validate:
-            validator = self.id_checker(node)
-            validator(shift_id=self.next_atom_id)
-            ns.atom_ids.update(validator.atom_ids)
-
-        return ns
-
-    def __add__(self, other):
-        return self.add_fragment(other)
-
-    def get_atom(self, atom_id):
-        """Get the atom corresponding to the given id
-
-        :param atom_id: the id
-        :type atom_id: int
-        :rtype: osmipy.smiles_ast.Atom
-        """
-
-        return self.atom_ids[atom_id]

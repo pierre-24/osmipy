@@ -1,5 +1,5 @@
-import osmipy.tokens
-from osmipy.smiles_ast import Chain, BranchedAtom, Branch, RingBond, Atom, Bond
+from osmipy import lexer
+from osmipy.smiles_ast import Chain, BranchedAtom, Branch, RingBond, Atom, Bond, SMILES
 from osmipy.tokens import *
 
 
@@ -54,7 +54,7 @@ class Parser:
                 self.previous_tokens.append(self.current_token)
             self.current_token = next(self.tokenizer)
         except StopIteration:
-            self.current_token = osmipy.tokens.Token(EOF, None)
+            self.current_token = Token(EOF, None)
 
     def bracket_atom(self):
         """
@@ -337,7 +337,7 @@ class Parser:
     def smiles(self):
         """
 
-        :rtype: Chain
+        :rtype: osmipy.smiles_ast.SMILES
         """
 
         node = None
@@ -358,4 +358,15 @@ class Parser:
             if id(rb1.parent.parent) == id(rb2.parent.parent.parent):
                 raise ParserException(self.current_token, 'ring id {}: direct pair is not allowed'.format(rb1.ring_id))
 
-        return node
+        return SMILES(node, self.atom_ids)
+
+
+def parse(s):
+    """Parse a string to an AST
+
+    :param s: string to parse
+    :type s: str
+    :rtype: osmipy.smiles_ast.SMILES
+    """
+
+    return Parser(lexer.Lexer(s)).smiles()
