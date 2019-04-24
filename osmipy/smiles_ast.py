@@ -207,7 +207,7 @@ class SMILES(AST):
 
     @chain.setter
     def chain(self, value):
-        self._set_if(value, '_chain', Chain)
+        self._set_if_or_none(value, '_chain', Chain)
 
     @property
     def children(self):
@@ -378,6 +378,52 @@ class Chain(AST):
 
         return
 
+    def insert_above(self, node, bond_before=None, bond_after=None):
+        """Insert a new atom before this chain
+
+        :param node: atom to be added
+        :type node: BranchedAtom
+        :param bond_before: bond to link this atom to parent node
+        :type bond_before: Bond
+        :param bond_after: bond to link this atom to next node
+        :type bond_after: Bond
+        """
+
+        if self.parent is None:
+            raise AttributeError('`self` has no parent')
+
+        if type(node) is not BranchedAtom:
+            raise TypeError(node)
+
+        if type(self.parent) is SMILES:
+            if bond_before is not None:
+                raise RuntimeError('cannot set `bond_before` if parent is a `SMILES` node')
+
+            p = self.parent  # will be overridden
+            c = Chain(left=node, right=self, bond=bond_after)
+            p.chain = c
+
+        else:
+            return self.parent.insert_below(node, bond_before, bond_after)
+
+    def insert_below(self, node, bond_before=None, bond_after=None):
+        """Insert a new atom after this chain
+
+        :param node: atom to be added
+        :type node: BranchedAtom
+        :param bond_before: bond to link this atom to parent chain
+        :type bond_before: Bond
+        :param bond_after: bond to link this atom to next chain
+        :type bond_after: Bond
+        """
+
+        if type(node) is not BranchedAtom:
+            raise TypeError(node)
+
+        self.right = Chain(node, right=self._right, bond=bond_after)
+        if bond_before is not None:
+            self.bond = bond_before
+
 
 class NotOrganicException(Exception):
     pass
@@ -419,6 +465,18 @@ class BranchedAtom(AST):
     @atom.setter
     def atom(self, value):
         self._set_if(value, '_atom', Atom)
+
+    @classmethod
+    def from_symbol(cls, symbol, atom_id=-1):
+        """Create a branched atom directly from the atomic symbol
+
+        :param symbol: the atomic symbol
+        :type symbol: str
+        :param atom_id: the atom id
+        :type atom_id: int
+        """
+
+        return cls(Atom(symbol, atom_id=atom_id))
 
     def append_branch(self, branch):
         """Add a branch

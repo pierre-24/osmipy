@@ -147,7 +147,7 @@ class ASTTestCase(OSmiPyTestCase):
         self.assertEqual(self.smiles2.left.ring_bonds, [])
         self.assertEqual(target.ring_bonds, [])  # both ends are deleted
 
-    def test_insert(self):
+    def test_insert_before_and_after(self):
         """Test `insert_before()` and `insert_after()` for branches and ring bonds
         """
 
@@ -175,11 +175,24 @@ class ASTTestCase(OSmiPyTestCase):
         self.smiles2.left.ring_bonds[0].insert_after(ring_bond_beg)
         self.assertEqual(self.smiles2.left.ring_bonds[1], ring_bond_beg)
 
+    def test_insert_above_and_below(self):
+        """Test `insert_above()` and `insert_below()` for chains
+        """
+
+        s = self.smiles.parent
+
+        self.smiles.left.replace_with(smiles_ast.BranchedAtom.from_symbol('C'))
+        self.smiles.insert_above(smiles_ast.BranchedAtom.from_symbol('F'))
+        self.assertEqual(s.chain.left.atom.symbol, 'F')
+
+        s.chain.insert_below(smiles_ast.BranchedAtom.from_symbol('Si'))
+        self.assertEqual(s.chain.right.left.atom.symbol, 'Si')
+
     def test_validation(self):
 
         # test validation
         s = smiles_ast.SMILES()
-        s.chain = smiles_ast.Chain(smiles_ast.BranchedAtom(smiles_ast.Atom('O')))
+        s.chain = smiles_ast.Chain(smiles_ast.BranchedAtom.from_symbol('O'))
 
         self.assertEqual(s.chain.left.atom.atom_id, -1)
         s.validate()
@@ -187,7 +200,7 @@ class ASTTestCase(OSmiPyTestCase):
         self.assertEqual(s.get_atom(0), s.chain.left.atom)
 
         # test duplicate
-        s.chain.right = smiles_ast.Chain(smiles_ast.BranchedAtom(smiles_ast.Atom('C', atom_id=0)))  # duplicate
+        s.chain.right = smiles_ast.Chain(smiles_ast.BranchedAtom.from_symbol('C', atom_id=0))  # duplicate
 
         with self.assertRaises(smiles_visitors.DuplicateAtomIdException):
             s.validate()
