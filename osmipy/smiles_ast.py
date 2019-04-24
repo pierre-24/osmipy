@@ -8,6 +8,11 @@ class NotAChildError(ValueError):
     pass
 
 
+class NoParentError(AttributeError):
+    def __init__(self):
+        super().__init__('`self` has no parent')
+
+
 class AST:
     """AST element
     """
@@ -143,7 +148,7 @@ class AST:
         """
 
         if self.parent is None:
-            raise AttributeError('`self` has no parent')
+            raise NoParentError()
 
         if signal_remove:
             self.signal_remove()
@@ -166,7 +171,7 @@ class AST:
         """
 
         if self.parent is None:
-            raise AttributeError('`self` has no parent')
+            raise NoParentError()
 
         if signal_remove:
             self.signal_remove()
@@ -390,7 +395,7 @@ class Chain(AST):
         """
 
         if self.parent is None:
-            raise AttributeError('`self` has no parent')
+            raise NoParentError()
 
         if type(node) is not BranchedAtom:
             raise TypeError(node)
@@ -423,6 +428,34 @@ class Chain(AST):
         self.right = Chain(node, right=self._right, bond=bond_after)
         if bond_before is not None:
             self.bond = bond_before
+
+    def elide(self, bond=None, signal_remove=True):
+        """Remove this chain, but connect ``parent` to ``right``
+
+        :param bond: change bond between ``parent`` and ``right``
+        :type bond: Bond
+        :param signal_remove: use ``signal_remove()`` before
+        :type signal_remove: bool
+        """
+
+        if self.parent is None:
+            raise NoParentError()
+
+        if type(self.parent) is SMILES:
+            if bond is not None:
+                raise AttributeError('cannot set `bond` if parent is `SMILES`')
+
+            self.parent.chain = self._right
+        else:
+            self.parent.right = self._right
+
+            if self.bond is not None:
+                self.parent.bond = bond
+
+        if signal_remove:
+            self._left.signal_remove()
+            if self._bond is not None:
+                self._bond.signal_remove()
 
 
 class NotOrganicException(Exception):
@@ -753,7 +786,7 @@ class Branch(AST):
         """
 
         if self.parent is None:
-            raise AttributeError('`self` has no parent')
+            raise NoParentError()
 
         self.parent._insert_child(self, node)
 
@@ -765,7 +798,7 @@ class Branch(AST):
         """
 
         if self.parent is None:
-            raise AttributeError('`self` has no parent')
+            raise NoParentError()
 
         self.parent._insert_child(self, node, after=True)
 
@@ -856,7 +889,7 @@ class RingBond(AST):
         """
 
         if self.parent is None:
-            raise AttributeError('`self` has no parent')
+            raise NoParentError()
 
         self.parent._insert_child(self, node)
 
@@ -868,7 +901,7 @@ class RingBond(AST):
         """
 
         if self.parent is None:
-            raise AttributeError('`self` has no parent')
+            raise NoParentError()
 
         self.parent._insert_child(self, node, after=True)
 

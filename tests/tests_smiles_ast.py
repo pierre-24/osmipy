@@ -147,6 +147,29 @@ class ASTTestCase(OSmiPyTestCase):
         self.assertEqual(self.smiles2.left.ring_bonds, [])
         self.assertEqual(target.ring_bonds, [])  # both ends are deleted
 
+    def test_elide(self):
+        """Test `elide()` for chain
+        """
+
+        # delete first chain
+        s = self.smiles.parent
+        r = self.smiles.right
+        self.assertNotEqual(s.chain, r)
+        self.smiles.elide()
+        self.assertEqual(s.chain, r)
+
+        # delete in the middle
+        last = list(s.chain.next_chains)[-1]
+        self.assertNotEqual(s.chain.right, last)
+        s.chain.right.elide(bond=smiles_ast.Bond())
+        self.assertEqual(s.chain.right, last)
+        self.assertIsNone(s.chain.bond.symbol)
+
+        # triggers removing the ring bonds
+        s = self.smiles2.parent
+        s.chain.elide()
+        self.assertNotIn(smiles_ast.RingBond, (type(a) for a in s.descendants))
+
     def test_insert_before_and_after(self):
         """Test `insert_before()` and `insert_after()` for branches and ring bonds
         """
