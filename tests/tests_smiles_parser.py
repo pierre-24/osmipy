@@ -31,41 +31,46 @@ class ParserTestCase(OSmiPyTestCase):
 
         # types
         self.assertEqual(type(r), type(rx))
-        self.assertEqual(type(r.left), type(rx.left))
-        self.assertEqual(type(r.right), type(rx.right))
+        self.assertEqual(type(r.branched_atom), type(rx.branched_atom))
+        self.assertEqual(type(r.next_chain), type(rx.next_chain))
         self.assertEqual(type(r.bond), type(rx.bond))
-        self.assertEqual(type(r.left.branches[0]), type(rx.left.branches[0]))
-        self.assertEqual(type(r.left.branches[0].chain), type(rx.left.branches[0].chain))
-        self.assertEqual(type(r.left.branches[0].bond), type(rx.left.branches[0].bond))
-        self.assertEqual(type(r.left.branches[0].chain.left), type(rx.left.branches[0].chain.left))
-        self.assertEqual(type(r.left.branches[0].chain.left.atom), type(rx.left.branches[0].chain.left.atom))
-        self.assertEqual(type(r.left.atom), type(rx.left.atom))
-        self.assertEqual(type(r.right.left), type(rx.right.left))
-        self.assertEqual(type(r.right.right), type(rx.right.right))
-        self.assertEqual(type(r.right.bond), type(rx.right.bond))
-        self.assertEqual(type(r.right.left.atom), type(rx.right.left.atom))
-        self.assertEqual(type(r.right.right.left.atom), type(rx.right.right.left.atom))
+        self.assertEqual(type(r.branched_atom.branches[0]), type(rx.branched_atom.branches[0]))
+        self.assertEqual(type(r.branched_atom.branches[0].chain), type(rx.branched_atom.branches[0].chain))
+        self.assertEqual(type(r.branched_atom.branches[0].bond), type(rx.branched_atom.branches[0].bond))
+        self.assertEqual(type(r.branched_atom.branches[0].chain.branched_atom),
+                         type(rx.branched_atom.branches[0].chain.branched_atom))
+        self.assertEqual(type(r.branched_atom.branches[0].chain.branched_atom.atom),
+                         type(rx.branched_atom.branches[0].chain.branched_atom.atom))
+        self.assertEqual(type(r.branched_atom.atom), type(rx.branched_atom.atom))
+        self.assertEqual(type(r.next_chain.branched_atom), type(rx.next_chain.branched_atom))
+        self.assertEqual(type(r.next_chain.next_chain), type(rx.next_chain.next_chain))
+        self.assertEqual(type(r.next_chain.bond), type(rx.next_chain.bond))
+        self.assertEqual(type(r.next_chain.branched_atom.atom), type(rx.next_chain.branched_atom.atom))
+        self.assertEqual(type(r.next_chain.next_chain.branched_atom.atom),
+                         type(rx.next_chain.next_chain.branched_atom.atom))
 
         # symbols and hcounts
-        self.assertEqual(r.left.branches[0].bond.symbol, rx.left.branches[0].bond.symbol)
-        self.assertEqual(r.left.branches[0].chain.left.atom.symbol, rx.left.branches[0].chain.left.atom.symbol)  # -Cl
-        self.assertEqual(r.left.branches[0].chain.left.implicit_hcount, 0)
+        self.assertEqual(r.branched_atom.branches[0].bond.symbol, rx.branched_atom.branches[0].bond.symbol)
+        self.assertEqual(r.branched_atom.branches[0].chain.branched_atom.atom.symbol,
+                         rx.branched_atom.branches[0].chain.branched_atom.atom.symbol)  # -Cl
+        self.assertEqual(r.branched_atom.branches[0].chain.branched_atom.implicit_hcount, 0)
         self.assertEqual(r.bond.symbol, rx.bond.symbol)
-        self.assertEqual(r.left.atom.symbol, rx.left.atom.symbol)  # sp² C
-        self.assertEqual(r.left.implicit_hcount, 1)
-        self.assertEqual(r.right.bond.symbol, rx.right.bond.symbol)
-        self.assertEqual(r.right.left.atom.symbol, rx.right.left.atom.symbol)  # sp² C
-        self.assertEqual(r.right.right.left.atom.symbol, rx.right.right.left.atom.symbol)  # -OH
-        self.assertEqual(r.right.right.left.implicit_hcount, 1)
+        self.assertEqual(r.branched_atom.atom.symbol, rx.branched_atom.atom.symbol)  # sp² C
+        self.assertEqual(r.branched_atom.implicit_hcount, 1)
+        self.assertEqual(r.next_chain.bond.symbol, rx.next_chain.bond.symbol)
+        self.assertEqual(r.next_chain.branched_atom.atom.symbol, rx.next_chain.branched_atom.atom.symbol)  # sp² C
+        self.assertEqual(r.next_chain.next_chain.branched_atom.atom.symbol,
+                         rx.next_chain.next_chain.branched_atom.atom.symbol)  # -OH
+        self.assertEqual(r.next_chain.next_chain.branched_atom.implicit_hcount, 1)
 
         # parent-child
         self.assertEqual(r.parent, None)
-        self.assertEqual(r.left.parent, r)
-        self.assertEqual(r.right.parent, r)
+        self.assertEqual(r.branched_atom.parent, r)
+        self.assertEqual(r.next_chain.parent, r)
         self.assertEqual(r.bond.parent, r)
-        self.assertEqual(r.left.atom.parent, r.left)
-        self.assertEqual(r.left.branches[0].chain.parent, r.left.branches[0])
-        self.assertEqual(r.left.branches[0].bond.parent, r.left.branches[0])
+        self.assertEqual(r.branched_atom.atom.parent, r.branched_atom)
+        self.assertEqual(r.branched_atom.branches[0].chain.parent, r.branched_atom.branches[0])
+        self.assertEqual(r.branched_atom.branches[0].bond.parent, r.branched_atom.branches[0])
 
         # An example with ring bonds
         r = smiles_ast.Chain(
@@ -84,29 +89,33 @@ class ParserTestCase(OSmiPyTestCase):
 
         # types
         self.assertEqual(type(r), type(rx))
-        self.assertEqual(type(r.left), type(rx.left))
-        self.assertEqual(type(r.left.atom), type(rx.left.atom))
-        self.assertEqual(type(r.right), type(rx.right))
-        self.assertEqual(type(r.right.left), type(rx.right.left))
-        self.assertEqual(type(r.right.left.atom), type(rx.right.left.atom))
-        self.assertEqual(type(r.right.right.left), type(rx.right.right.left))
-        self.assertEqual(type(r.right.right.left.atom), type(rx.right.right.left.atom))
+        self.assertEqual(type(r.branched_atom), type(rx.branched_atom))
+        self.assertEqual(type(r.branched_atom.atom), type(rx.branched_atom.atom))
+        self.assertEqual(type(r.next_chain), type(rx.next_chain))
+        self.assertEqual(type(r.next_chain.branched_atom), type(rx.next_chain.branched_atom))
+        self.assertEqual(type(r.next_chain.branched_atom.atom), type(rx.next_chain.branched_atom.atom))
+        self.assertEqual(type(r.next_chain.next_chain.branched_atom), type(rx.next_chain.next_chain.branched_atom))
+        self.assertEqual(type(r.next_chain.next_chain.branched_atom.atom),
+                         type(rx.next_chain.next_chain.branched_atom.atom))
 
         # symbols and hcount
-        self.assertEqual(r.left.atom.symbol, rx.left.atom.symbol)
-        self.assertEqual(rx.left.implicit_hcount, 2)  # sp³ C
-        self.assertEqual(r.right.left.atom.symbol, rx.right.left.atom.symbol)
-        self.assertEqual(rx.right.left.implicit_hcount, 2)  # sp³ C
-        self.assertEqual(r.right.right.left.atom.symbol, rx.right.right.left.atom.symbol)
-        self.assertEqual(rx.right.right.left.implicit_hcount, 2)  # sp³ C
+        self.assertEqual(r.branched_atom.atom.symbol, rx.branched_atom.atom.symbol)
+        self.assertEqual(rx.branched_atom.implicit_hcount, 2)  # sp³ C
+        self.assertEqual(r.next_chain.branched_atom.atom.symbol, rx.next_chain.branched_atom.atom.symbol)
+        self.assertEqual(rx.next_chain.branched_atom.implicit_hcount, 2)  # sp³ C
+        self.assertEqual(r.next_chain.next_chain.branched_atom.atom.symbol,
+                         rx.next_chain.next_chain.branched_atom.atom.symbol)
+        self.assertEqual(rx.next_chain.next_chain.branched_atom.implicit_hcount, 2)  # sp³ C
 
         # ring bonds
-        self.assertEqual(type(r.left.ring_bonds[0]), type(rx.left.ring_bonds[0]))
-        self.assertEqual(type(r.right.right.left.ring_bonds[0]), type(rx.right.right.left.ring_bonds[0]))
+        self.assertEqual(type(r.branched_atom.ring_bonds[0]), type(rx.branched_atom.ring_bonds[0]))
+        self.assertEqual(type(r.next_chain.next_chain.branched_atom.ring_bonds[0]),
+                         type(rx.next_chain.next_chain.branched_atom.ring_bonds[0]))
 
-        self.assertEqual(rx.left.ring_bonds[0].ring_id, rx.right.right.left.ring_bonds[0].ring_id)
-        self.assertEqual(rx.left.ring_bonds[0].target, rx.right.right.left)
-        self.assertEqual(rx.left, rx.right.right.left.ring_bonds[0].target)
+        self.assertEqual(rx.branched_atom.ring_bonds[0].ring_id,
+                         rx.next_chain.next_chain.branched_atom.ring_bonds[0].ring_id)
+        self.assertEqual(rx.branched_atom.ring_bonds[0].target, rx.next_chain.next_chain.branched_atom)
+        self.assertEqual(rx.branched_atom, rx.next_chain.next_chain.branched_atom.ring_bonds[0].target)
 
     def test_parse_ring_bond(self):
         """Specific problematic ring bond cases (thus raising errors)"""

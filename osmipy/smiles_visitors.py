@@ -30,11 +30,11 @@ class ASTVisitor(visitor.NodeVisitor):
         :param node: node
         :type node: osmipy.smiles_ast.Chain
         """
-        self.visit(node.left, *args, **kwargs)
+        self.visit(node.branched_atom, *args, **kwargs)
         if node.bond is not None:
             self.visit(node.bond, *args, **kwargs)
-        if node.right is not None:
-            self.visit(node.right, *args, **kwargs)
+        if node.next_chain is not None:
+            self.visit(node.next_chain, *args, **kwargs)
 
     def visit_branchedatom(self, node, *args, **kwargs):
         """
@@ -117,11 +117,11 @@ class Interpreter(visitor.NodeVisitor):
         :type node: osmipy.smiles_ast.Chain
         :rtype: str
         """
-        r = self.visit(node.left)
-        if node.right is not None:
+        r = self.visit(node.branched_atom)
+        if node.next_chain is not None:
             if node.bond is not None:
                 r += self.visit(node.bond)
-            r += self.visit(node.right)
+            r += self.visit(node.next_chain)
 
         return r
 

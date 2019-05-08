@@ -28,7 +28,7 @@ class ASTTestCase(OSmiPyTestCase):
 
         for smi, hcount in to_test:
             node = smiles_parser.parse(smi).chain
-            self.assertEqual(hcount, node.left.implicit_hcount, msg=smi)
+            self.assertEqual(hcount, node.branched_atom.implicit_hcount, msg=smi)
 
     def test_navigate_tree(self):
         """Test going down, up, left and right in the tree
@@ -37,11 +37,11 @@ class ASTTestCase(OSmiPyTestCase):
         # children
         children = list(self.smiles.children)
 
-        self.assertIn(self.smiles.left, children)
+        self.assertIn(self.smiles.branched_atom, children)
         self.assertIn(self.smiles.bond, children)
-        self.assertIn(self.smiles.right, children)
+        self.assertIn(self.smiles.next_chain, children)
 
-        self.assertNotIn(self.smiles.right.left, children)
+        self.assertNotIn(self.smiles.next_chain.branched_atom, children)
 
         # contents
         self.assertEqual(children, self.smiles.contents)
@@ -67,24 +67,24 @@ class ASTTestCase(OSmiPyTestCase):
 
         # next sibling(s)
         self.assertEqual(self.smiles.next_sibling, None)
-        self.assertEqual(self.smiles.left.next_sibling, self.smiles.bond)
-        self.assertEqual(self.smiles.bond.next_sibling, self.smiles.right)
-        self.assertEqual(self.smiles.right.next_sibling, None)
+        self.assertEqual(self.smiles.branched_atom.next_sibling, self.smiles.bond)
+        self.assertEqual(self.smiles.bond.next_sibling, self.smiles.next_chain)
+        self.assertEqual(self.smiles.next_chain.next_sibling, None)
 
         # previous sibling(s)
         self.assertEqual(self.smiles.previous_sibling, None)
-        self.assertEqual(self.smiles.left.previous_sibling, None)
-        self.assertEqual(self.smiles.bond.previous_sibling, self.smiles.left)
-        self.assertEqual(self.smiles.right.previous_sibling, self.smiles.bond)
+        self.assertEqual(self.smiles.branched_atom.previous_sibling, None)
+        self.assertEqual(self.smiles.bond.previous_sibling, self.smiles.branched_atom)
+        self.assertEqual(self.smiles.next_chain.previous_sibling, self.smiles.bond)
 
     def test_remove(self):
         """Test node removal with `remove()`"""
 
         with self.assertRaises(ValueError):
-            self.smiles.left.remove()  # cannot remove a `BranchedAtom`
+            self.smiles.branched_atom.remove()  # cannot remove a `BranchedAtom`
 
         with self.assertRaises(ValueError):
-            self.smiles.left.atom.remove()  # cannot remove an `Atom`
+            self.smiles.branched_atom.atom.remove()  # cannot remove an `Atom`
 
         # remove a bond in a chain
         self.assertIsNotNone(self.smiles.bond)
@@ -92,40 +92,40 @@ class ASTTestCase(OSmiPyTestCase):
         self.assertIsNone(self.smiles.bond)
 
         # remove a chain
-        self.assertIsNotNone(self.smiles.right.right.right)
-        self.smiles.right.right.right.remove()
-        self.assertIsNone(self.smiles.right.right.right)
+        self.assertIsNotNone(self.smiles.next_chain.next_chain.next_chain)
+        self.smiles.next_chain.next_chain.next_chain.remove()
+        self.assertIsNone(self.smiles.next_chain.next_chain.next_chain)
 
         # remove a branch in a BranchedAtom
-        self.assertNotEqual(self.smiles2.left.branches, [])
-        self.smiles2.left.branches[0].remove()
-        self.assertEqual(self.smiles2.left.branches, [])
+        self.assertNotEqual(self.smiles2.branched_atom.branches, [])
+        self.smiles2.branched_atom.branches[0].remove()
+        self.assertEqual(self.smiles2.branched_atom.branches, [])
 
         # remove a ring bond in a branched atom
-        target = self.smiles2.left.ring_bonds[0].target
-        self.assertNotEqual(self.smiles2.left.ring_bonds, [])
-        self.smiles2.left.ring_bonds[0].remove()
-        self.assertEqual(self.smiles2.left.ring_bonds, [])
+        target = self.smiles2.branched_atom.ring_bonds[0].target
+        self.assertNotEqual(self.smiles2.branched_atom.ring_bonds, [])
+        self.smiles2.branched_atom.ring_bonds[0].remove()
+        self.assertEqual(self.smiles2.branched_atom.ring_bonds, [])
         self.assertEqual(target.ring_bonds, [])  # both ends are deleted
 
         # indirectly delete a ring bond by removing the parent chain
         smiles3 = smiles_parser.parse('C1CC1').chain
-        self.assertNotEqual(smiles3.left.ring_bonds, [])
-        smiles3.right.right.remove()
-        self.assertEqual(smiles3.left.ring_bonds, [])
+        self.assertNotEqual(smiles3.branched_atom.ring_bonds, [])
+        smiles3.next_chain.next_chain.remove()
+        self.assertEqual(smiles3.branched_atom.ring_bonds, [])
 
     def test_replace_with(self):
         """Test `replace_with()`
         """
 
         with self.assertRaises(TypeError):  # cannot replace a node with another type of node
-            self.smiles.right.replace_with(smiles_ast.Atom('C'))
+            self.smiles.next_chain.replace_with(smiles_ast.Atom('C'))
 
         # replace atom
-        self.assertEqual(self.smiles.left.atom.symbol, 'Cl')
-        self.smiles.left.atom.replace_with(smiles_ast.Atom('H', isotope=2))  # change by a deuterium
-        self.assertEqual(self.smiles.left.atom.symbol, 'H')  # atom changed
-        self.assertEqual(self.smiles.left.atom.parent, self.smiles.left)  # parent is set !
+        self.assertEqual(self.smiles.branched_atom.atom.symbol, 'Cl')
+        self.smiles.branched_atom.atom.replace_with(smiles_ast.Atom('H', isotope=2))  # change by a deuterium
+        self.assertEqual(self.smiles.branched_atom.atom.symbol, 'H')  # atom changed
+        self.assertEqual(self.smiles.branched_atom.atom.parent, self.smiles.branched_atom)  # parent is set !
 
         # replace bond on chain
         self.assertEqual(self.smiles.bond.symbol, '\\')
@@ -133,18 +133,18 @@ class ASTTestCase(OSmiPyTestCase):
         self.assertEqual(self.smiles.bond.symbol, '/')
 
         # replace (right) chain
-        self.smiles.right.right.right.replace_with(smiles_parser.parse('OC').chain)
-        self.assertEqual(self.smiles.right.right.right.left.atom.symbol, 'O')
+        self.smiles.next_chain.next_chain.next_chain.replace_with(smiles_parser.parse('OC').chain)
+        self.assertEqual(self.smiles.next_chain.next_chain.next_chain.branched_atom.atom.symbol, 'O')
 
         # replace branch
-        self.assertEqual(len(list(self.smiles2.left.branches[0].descendants)), 3)  # Chain + BranchedAtom + Atom
-        self.smiles2.left.branches[0].replace_with(smiles_ast.Branch(smiles_parser.parse('COC').chain))
-        self.assertNotEqual(len(list(self.smiles2.left.branches[0].descendants)), 3)
+        self.assertEqual(len(list(self.smiles2.branched_atom.branches[0].descendants)), 3)
+        self.smiles2.branched_atom.branches[0].replace_with(smiles_ast.Branch(smiles_parser.parse('COC').chain))
+        self.assertNotEqual(len(list(self.smiles2.branched_atom.branches[0].descendants)), 3)
 
         # replace branched atom (which should also remove the other ring bond)
-        target = self.smiles2.left.ring_bonds[0].target
-        self.smiles2.left.replace_with(smiles_ast.BranchedAtom(atom=smiles_ast.Atom('O')))
-        self.assertEqual(self.smiles2.left.ring_bonds, [])
+        target = self.smiles2.branched_atom.ring_bonds[0].target
+        self.smiles2.branched_atom.replace_with(smiles_ast.BranchedAtom(atom=smiles_ast.Atom('O')))
+        self.assertEqual(self.smiles2.branched_atom.ring_bonds, [])
         self.assertEqual(target.ring_bonds, [])  # both ends are deleted
 
     def test_elide(self):
@@ -153,16 +153,16 @@ class ASTTestCase(OSmiPyTestCase):
 
         # delete first chain
         s = self.smiles.parent
-        r = self.smiles.right
+        r = self.smiles.next_chain
         self.assertNotEqual(s.chain, r)
         self.smiles.elide()
         self.assertEqual(s.chain, r)
 
         # delete in the middle
         last = list(s.chain.next_chains)[-1]
-        self.assertNotEqual(s.chain.right, last)
-        s.chain.right.elide(bond=smiles_ast.Bond())
-        self.assertEqual(s.chain.right, last)
+        self.assertNotEqual(s.chain.next_chain, last)
+        s.chain.next_chain.elide(bond=smiles_ast.Bond())
+        self.assertEqual(s.chain.next_chain, last)
         self.assertIsNone(s.chain.bond.symbol)
 
         # triggers removing the ring bonds
@@ -176,27 +176,27 @@ class ASTTestCase(OSmiPyTestCase):
 
         # test with branch:
         branch = smiles_ast.Branch(smiles_parser.parse('CC').chain)
-        self.assertNotEqual(self.smiles2.left.branches[0], branch)
-        self.smiles2.left.branches[0].insert_before(branch)
-        self.assertEqual(self.smiles2.left.branches[0], branch)
+        self.assertNotEqual(self.smiles2.branched_atom.branches[0], branch)
+        self.smiles2.branched_atom.branches[0].insert_before(branch)
+        self.assertEqual(self.smiles2.branched_atom.branches[0], branch)
 
         branch.remove()  # remove itself from the AST
-        self.smiles2.left.branches[0].insert_after(branch)
-        self.assertEqual(self.smiles2.left.branches[1], branch)
+        self.smiles2.branched_atom.branches[0].insert_after(branch)
+        self.assertEqual(self.smiles2.branched_atom.branches[1], branch)
 
         # test with ringbond
-        ring_bond_beg = smiles_ast.RingBond(target=branch.chain.right.left, ring_id=2)
-        ring_bond_end = smiles_ast.RingBond(target=self.smiles2.left, ring_id=2)
+        ring_bond_beg = smiles_ast.RingBond(target=branch.chain.next_chain.branched_atom, ring_id=2)
+        ring_bond_end = smiles_ast.RingBond(target=self.smiles2.branched_atom, ring_id=2)
 
-        branch.chain.right.left.append_ring_bond(ring_bond_end)
+        branch.chain.next_chain.branched_atom.append_ring_bond(ring_bond_end)
 
-        self.assertNotEqual(self.smiles2.left.ring_bonds[0], ring_bond_beg)
-        self.smiles2.left.ring_bonds[0].insert_before(ring_bond_beg)
-        self.assertEqual(self.smiles2.left.ring_bonds[0], ring_bond_beg)
+        self.assertNotEqual(self.smiles2.branched_atom.ring_bonds[0], ring_bond_beg)
+        self.smiles2.branched_atom.ring_bonds[0].insert_before(ring_bond_beg)
+        self.assertEqual(self.smiles2.branched_atom.ring_bonds[0], ring_bond_beg)
 
         ring_bond_beg.remove(signal_remove=False)  # do not remove the other ring bond !
-        self.smiles2.left.ring_bonds[0].insert_after(ring_bond_beg)
-        self.assertEqual(self.smiles2.left.ring_bonds[1], ring_bond_beg)
+        self.smiles2.branched_atom.ring_bonds[0].insert_after(ring_bond_beg)
+        self.assertEqual(self.smiles2.branched_atom.ring_bonds[1], ring_bond_beg)
 
     def test_insert_above_and_below(self):
         """Test `insert_above()` and `insert_below()` for chains
@@ -204,12 +204,12 @@ class ASTTestCase(OSmiPyTestCase):
 
         s = self.smiles.parent
 
-        self.smiles.left.replace_with(smiles_ast.BranchedAtom.from_symbol('C'))
+        self.smiles.branched_atom.replace_with(smiles_ast.BranchedAtom.from_symbol('C'))
         self.smiles.insert_above(smiles_ast.BranchedAtom.from_symbol('F'))
-        self.assertEqual(s.chain.left.atom.symbol, 'F')
+        self.assertEqual(s.chain.branched_atom.atom.symbol, 'F')
 
         s.chain.insert_below(smiles_ast.BranchedAtom.from_symbol('Si'))
-        self.assertEqual(s.chain.right.left.atom.symbol, 'Si')
+        self.assertEqual(s.chain.next_chain.branched_atom.atom.symbol, 'Si')
 
     def test_validation(self):
 
@@ -217,26 +217,26 @@ class ASTTestCase(OSmiPyTestCase):
         s = smiles_ast.SMILES()
         s.chain = smiles_ast.Chain(smiles_ast.BranchedAtom.from_symbol('O'))
 
-        self.assertEqual(s.chain.left.atom.atom_id, -1)
+        self.assertEqual(s.chain.branched_atom.atom.atom_id, -1)
         s.validate()
-        self.assertEqual(s.chain.left.atom.atom_id, 0)
-        self.assertEqual(s.get_atom(0), s.chain.left.atom)
+        self.assertEqual(s.chain.branched_atom.atom.atom_id, 0)
+        self.assertEqual(s.get_atom(0), s.chain.branched_atom.atom)
 
         # test duplicate
-        s.chain.right = smiles_ast.Chain(smiles_ast.BranchedAtom.from_symbol('C', atom_id=0))  # duplicate
+        s.chain.next_chain = smiles_ast.Chain(smiles_ast.BranchedAtom.from_symbol('C', atom_id=0))  # duplicate
 
         with self.assertRaises(smiles_visitors.DuplicateAtomIdException):
             s.validate()
 
         # now remove duplicate
         s.validate(remove_duplicate=True)
-        self.assertEqual(s[1], s.chain.right.left.atom)
+        self.assertEqual(s[1], s.chain.next_chain.branched_atom.atom)
 
     def test_get_atom(self):
         s = smiles_parser.parse('CCO')
-        self.assertEqual(s.get_atom(0), s.chain.left.atom)
-        self.assertEqual(s.get_atom(1), s.chain.right.left.atom)
-        self.assertEqual(s.get_atom(2), s.chain.right.right.left.atom)
+        self.assertEqual(s.get_atom(0), s.chain.branched_atom.atom)
+        self.assertEqual(s.get_atom(1), s.chain.next_chain.branched_atom.atom)
+        self.assertEqual(s.get_atom(2), s.chain.next_chain.next_chain.branched_atom.atom)
 
     def test_add_fragment(self):
         """Test add fragment to a SMILES object"""

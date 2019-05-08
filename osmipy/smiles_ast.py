@@ -279,16 +279,16 @@ class SMILES(AST):
             c = i
 
         if type(other) is Chain:
-            c.right = other
+            c.next_chain = other
         elif type(other) is SMILES:
-            c.right = other.chain
+            c.next_chain = other.chain
         else:
             raise TypeError(other)
 
         c.bond = Bond('.')
 
         if validate:
-            updater = self.id_checker(c.right)
+            updater = self.id_checker(c.next_chain)
             updater(shift_id=self._next_atom_id)
             self._atoms_id.update(updater.atom_ids)
             self._next_atom_id = updater.next_atom_id
@@ -314,30 +314,30 @@ class Chain(AST):
     def __init__(self, left, right=None, bond=None):
         super().__init__()
 
-        self._left = None
-        self._right = None
+        self._branched_atom = None
+        self._next_chain = None
         self._bond = None
 
         # set
-        self.left = left
-        self.right = right
+        self.branched_atom = left
+        self.next_chain = right
         self.bond = bond
 
     @property
-    def left(self):
-        return self._left
+    def branched_atom(self):
+        return self._branched_atom
 
-    @left.setter
-    def left(self, value):
-        self._set_if(value, '_left', BranchedAtom)
+    @branched_atom.setter
+    def branched_atom(self, value):
+        self._set_if(value, '_branched_atom', BranchedAtom)
 
     @property
-    def right(self):
-        return self._right
+    def next_chain(self):
+        return self._next_chain
 
-    @right.setter
-    def right(self, value):
-        self._set_if_or_none(value, '_right', Chain)
+    @next_chain.setter
+    def next_chain(self, value):
+        self._set_if_or_none(value, '_next_chain', Chain)
 
     @property
     def bond(self):
@@ -349,37 +349,37 @@ class Chain(AST):
 
     @property
     def children(self):
-        yield self._left
+        yield self._branched_atom
         if self._bond is not None:
             yield self._bond
-        if self._right is not None:
-            yield self._right
+        if self._next_chain is not None:
+            yield self._next_chain
 
     def _remove_child(self, child):
         if type(child) is BranchedAtom:
             raise ValueError('cannot remove a `BranchedAtom`')
         elif child == self._bond:
             self._bond = None
-        elif child == self._right:
-            self._right = None
+        elif child == self._next_chain:
+            self._next_chain = None
         else:
             raise NotAChildError(child)
 
     def _replace_child_with(self, child, node):
-        if child == self._left:
-            self.left = node
+        if child == self._branched_atom:
+            self.branched_atom = node
         elif child == self._bond:
             self.bond = node
-        elif child == self._right:
-            self.right = node
+        elif child == self._next_chain:
+            self.next_chain = node
         else:
             raise NotAChildError(child)
 
     @property
     def next_chains(self):
-        if self._right is not None:
-            yield self._right
-            yield from self._right.next_chains
+        if self._next_chain is not None:
+            yield self._next_chain
+            yield from self._next_chain.next_chains
 
         return
 
@@ -425,7 +425,7 @@ class Chain(AST):
         if type(node) is not BranchedAtom:
             raise TypeError(node)
 
-        self.right = Chain(node, right=self._right, bond=bond_after)
+        self.next_chain = Chain(node, right=self._next_chain, bond=bond_after)
         if bond_before is not None:
             self.bond = bond_before
 
@@ -445,15 +445,15 @@ class Chain(AST):
             if bond is not None:
                 raise AttributeError('cannot set `bond` if parent is `SMILES`')
 
-            self.parent.chain = self._right
+            self.parent.chain = self._next_chain
         else:
-            self.parent.right = self._right
+            self.parent.next_chain = self._next_chain
 
             if self.bond is not None:
                 self.parent.bond = bond
 
         if signal_remove:
-            self._left.signal_remove()
+            self._branched_atom.signal_remove()
             if self._bond is not None:
                 self._bond.signal_remove()
 
@@ -641,12 +641,12 @@ class BranchedAtom(AST):
                 if type(neighbour) is RingBond:
                     is_other_aromatic = neighbour.target.atom.aromatic
                 elif type(neighbour) is Branch:
-                    is_other_aromatic = neighbour.chain.left.atom.aromatic
+                    is_other_aromatic = neighbour.chain.branched_atom.atom.aromatic
                 elif type(neighbour) is Chain:
                     if not look_left:
-                        is_other_aromatic = neighbour.right.left.atom.aromatic
+                        is_other_aromatic = neighbour.next_chain.branched_atom.atom.aromatic
                     else:
-                        is_other_aromatic = neighbour.left.aromatic
+                        is_other_aromatic = neighbour.branched_atom.aromatic
             bo = 1.5 if (self._atom.aromatic and is_other_aromatic) else 1
         else:
             bo = bond.bond_order
@@ -672,7 +672,7 @@ class BranchedAtom(AST):
         if self.parent.parent is not None:
             total_bonds = self._bond_order_with(self.parent.parent, look_left=True)
 
-        if self.parent.right is not None:
+        if self.parent.next_chain is not None:
             total_bonds += self._bond_order_with(self.parent)
 
         for i in self.ring_bonds:
@@ -703,7 +703,7 @@ class BranchedAtom(AST):
         """
         n = 0
 
-        if self.parent.right is not None:
+        if self.parent.next_chain is not None:
             n += 1
         if self.parent.parent is not None:
             n += 1
