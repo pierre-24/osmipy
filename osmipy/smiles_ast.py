@@ -535,6 +535,24 @@ class BranchedAtom(AST):
         ring_bond.parent = self
         self.ring_bonds.append(ring_bond)
 
+    def make_ring_bond_with(self, other, ring_id, bond=None):
+        """Make a ring bond with another branched atom
+
+        :type other: BranchedAtom
+        :param other: the other atom
+        :type ring_id: int
+        :param ring_id: the ring id (unique if possible)
+        :rtype: RingBond
+        """
+
+        ring_bond = RingBond(ring_id, target=other, bond=bond)
+        rb2 = RingBond(ring_id, target=self, bond=bond)
+
+        self.append_ring_bond(ring_bond)
+        other.append_ring_bond(rb2)
+
+        return ring_bond
+
     @property
     def children(self):
         yield self._atom

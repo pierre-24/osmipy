@@ -198,6 +198,18 @@ class ASTTestCase(OSmiPyTestCase):
         self.smiles2.branched_atom.ring_bonds[0].insert_after(ring_bond_beg)
         self.assertEqual(self.smiles2.branched_atom.ring_bonds[1], ring_bond_beg)
 
+    def test_ring_bond_with(self):
+        branch = smiles_ast.Branch(smiles_parser.parse('CC').chain)
+        self.smiles2.branched_atom.branches[0].insert_after(branch)
+
+        e1, e2 = self.smiles2.branched_atom, branch.chain.next_chain.branched_atom
+        rb = e1.make_ring_bond_with(e2, ring_id=2)
+
+        self.assertEqual(rb.target, e2)
+        self.assertEqual(rb.parent, e1)
+        self.assertEqual(e1.ring_bonds[1].target, e2)
+        self.assertEqual(e2.ring_bonds[0].target, e1)
+
     def test_insert_above_and_below(self):
         """Test `insert_above()` and `insert_below()` for chains
         """
