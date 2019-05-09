@@ -208,10 +208,19 @@ class SMILES(AST):
 
     @property
     def chain(self):
+        """Get chain
+
+        :rtype: Chain
+        """
         return self._chain
 
     @chain.setter
     def chain(self, value):
+        """Set chain
+
+        :param value:
+        :type value: Chain
+        """
         self._set_if_or_none(value, '_chain', Chain)
 
     @property
@@ -325,26 +334,50 @@ class Chain(AST):
 
     @property
     def branched_atom(self):
+        """Set branched atom
+
+        :rtype: BranchedAtom
+        """
         return self._branched_atom
 
     @branched_atom.setter
     def branched_atom(self, value):
+        """Get branched atom
+
+        :type value: BranchedAtom
+        """
         self._set_if(value, '_branched_atom', BranchedAtom)
 
     @property
     def next_chain(self):
+        """Get chain
+
+        :rtype: Chain
+        """
         return self._next_chain
 
     @next_chain.setter
     def next_chain(self, value):
+        """Set chain
+
+        :type value: Chain
+        """
         self._set_if_or_none(value, '_next_chain', Chain)
 
     @property
     def bond(self):
+        """
+
+        :rtype: Bond
+        """
         return self._bond
 
     @bond.setter
     def bond(self, value):
+        """
+
+        :type value: Bond
+        """
         self._set_if_or_none(value, '_bond', Bond)
 
     @property
@@ -493,10 +526,18 @@ class BranchedAtom(AST):
 
     @property
     def atom(self):
+        """
+
+        :rtype: Atom
+        """
         return self._atom
 
     @atom.setter
     def atom(self, value):
+        """
+
+        :type value: Atom
+        """
         self._set_if(value, '_atom', Atom)
 
     @classmethod
@@ -756,18 +797,34 @@ class Branch(AST):
 
     @property
     def bond(self):
+        """
+
+        :rtype: Bond
+        """
         return self._bond
 
     @bond.setter
     def bond(self, value):
+        """
+
+        :type value: Bond
+        """
         self._set_if_or_none(value, '_bond', Bond)
 
     @property
     def chain(self):
+        """
+
+        :rtype: Chain
+        """
         return self._chain
 
     @chain.setter
     def chain(self, value):
+        """
+
+        :type value: Chain
+        """
         self._set_if(value, '_chain', Chain)
 
     @property
@@ -845,18 +902,34 @@ class RingBond(AST):
 
     @property
     def bond(self):
+        """
+
+        :rtype: Bond
+        """
         return self._bond
 
     @bond.setter
     def bond(self, value):
+        """
+
+        :type value: Bond
+        """
         self._set_if_or_none(value, '_bond', Bond)
 
     @property
     def target(self):
+        """
+
+        :rtype: BranchedAtom
+        """
         return self._target
 
     @target.setter
     def target(self, value):
+        """
+
+        :type value: BranchedAtom
+        """
         if value is None:
             self._target = None
         else:
