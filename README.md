@@ -9,17 +9,19 @@ By [Pierre Beaujean](https://pierrebeaujean.net/)
 Currently the library is able to
 
 + Parse a correct SMILES string and extract an AST ;
-+ Check a few extra stuffs (if ringbonds are correct and if `atoms_id` are uniques). 
++ Check a few extra stuffs (if ring bonds are correct and if `atoms_id` are uniques). 
 
-Minimal example:
+Minimalistic example:
 
 ```python
-from osmipy import smiles_parser
-obj = smiles_parser.parse('C12(CCCCC1)CCCCC2')
+from osmipy import parse
+obj = parse('C12(CCCCC1)CCCCC2')
 
 # AST starts in `obj.node`
 # TODO: more stuffs
 ```
+
+Check  [here](https://pierre-24.github.io/osmipy/) for more details.
 
 ## Install and/or contribute
 

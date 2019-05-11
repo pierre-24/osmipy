@@ -1,8 +1,8 @@
-from osmipy import visitor
+from osmipy import visitor, smiles_ast
 from osmipy.tokens import *
 
 
-class ASTVisitor(visitor.NodeVisitor):
+class SMILESASTVisitor(visitor.NodeVisitor):
     """Generic visitor for the SMILES AST
 
     :param node: node
@@ -205,7 +205,7 @@ class DuplicateAtomIdException(Exception):
     pass
 
 
-class AtomIdCheckAndUpdate(ASTVisitor):
+class AtomIdCheckAndUpdate(SMILESASTVisitor):
     """Visitor that keeps a dictionary of the atoms id, ``atom_ids``, and check that they are all uniques.
     In other words, it does the job of the parser for nodes that may have been constructed from scratch.
 
@@ -267,3 +267,111 @@ class AtomIdCheckAndUpdate(ASTVisitor):
                     self.atoms_no_id.append(node)
         else:
             self.atoms_no_id.append(node)
+
+
+class TreeView(SMILESASTVisitor):
+    """Generic visitor for the SMILES AST
+
+    :param node: node
+    :type node: Chain
+    """
+
+    NODE_CONT = '├──'
+    NODE_END  = '└──'  # noqa
+    NODE_TR   = '|  '  # noqa
+    NODE_TRN  = '   '  # noqa
+
+    def __init__(self, node):
+        super().__init__(node)
+
+    def __call__(self, *args, **kwargs):
+        """Start the visit
+        """
+        return self.visit(self.node, *args, **kwargs)
+
+    @staticmethod
+    def get_levels(levels, current_is_last=False, bond=None):
+        r = ''
+        for i in levels:
+            if i:
+                r += TreeView.NODE_TR
+            else:
+                r += TreeView.NODE_TRN
+        if current_is_last:
+            r += TreeView.NODE_END
+        else:
+            r += TreeView.NODE_CONT
+
+        return r
+
+    def visit_smiles(self, node, *args, **kwargs):
+        """
+
+        :param node: node
+        :type node: osmipy.smiles_ast.SMILES
+        """
+
+        r = 'SMILES'
+        if node.chain:
+            r += '\n' + self.visit(node.chain, levels=[])
+
+        return r
+
+    def visit_chain(self, node, *args, **kwargs):
+        """
+
+        :param node: node
+        :type node: osmipy.smiles_ast.Chain
+        """
+
+        levels = kwargs.get('levels', [])
+        r = TreeView.get_levels(levels, current_is_last=node.next_chain is None)
+
+        if node.parent is not None:
+            if type(node.parent) in [smiles_ast.Chain, smiles_ast.Branch]:
+                if node.parent.bond is not None:
+                    r += '[{}]'.format(str(node.parent.bond))
+
+        levels.append(node.next_chain is not None)
+        r += self.visit(node.branched_atom, levels=levels)
+        levels.pop()
+
+        if node.next_chain is not None:
+            r += '\n' + self.visit(node.next_chain, levels=levels)
+
+        return r
+
+    def visit_branchedatom(self, node, *args, **kwargs):
+        levels = kwargs.get('levels', [])
+        r = str(node.atom)
+
+        for i, n in enumerate(node.branches):
+            levels.append(not(i == (len(node.branches) - 1) and len(node.ring_bonds) == 0))
+            r += '\n' + self.visit(n, levels=levels)
+            levels.pop()
+
+        for i, n in enumerate(node.ring_bonds):
+            levels.append(i == (len(node.ring_bonds) - 1))
+            r += '\n' + self.visit(n, levels=levels)
+            levels.pop()
+
+        return r
+
+    def visit_branch(self, node, *args, **kwargs):
+        levels = kwargs.get('levels', [])
+
+        r = TreeView.get_levels(levels[:-1], current_is_last=not levels[-1])
+        r += 'BRANCH'
+
+        if node.chain:
+            r += '\n' + self.visit(node.chain, levels=levels)
+
+        return r
+
+    def visit_ringbond(self, node, *args, **kwargs):
+        levels = kwargs.get('levels', [])
+        r = TreeView.get_levels(levels[:-1], current_is_last=levels[-1]) + '>'
+        r += '{}'.format(node.ring_id)
+        if node.bond is not None:
+            r += '[{}]'.format(node.bond)
+        return r
