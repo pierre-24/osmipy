@@ -85,9 +85,26 @@ class Parser:
         if self.current_token.type == AT:
             chirality = '@'
             self.next()
-            # TODO: extend chirality at that point!
             if self.current_token.type == AT:
                 chirality += '@'
+                self.next()
+            if self.current_token.type == LETTER and self.current_token.value != 'H':  # complex chirality
+                spec = self.current_token.value
+                self.next()
+                spec += self.current_token.value
+                self.eat(LETTER)
+
+                if spec not in ['TH', 'AL', 'SP']:
+                    raise ParserException(self.current_token, 'unrecognised chirality {}'.format(spec))
+
+                if self.current_token.type != DIGIT:
+                    raise ParserException(self.current_token, 'expect DIGIT after chirality spec')
+
+                if (spec in ['AL', 'TH'] and self.current_token.value > 2) or\
+                        (spec == 'SP' and self.current_token.value > 3):
+                    raise ParserException(self.current_token, 'DIGIT is too large')
+
+                chirality += '{}{}'.format(spec, self.current_token.value)
                 self.next()
 
         # hcount

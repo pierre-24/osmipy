@@ -131,4 +131,25 @@ class ParserTestCase(OSmiPyTestCase):
 
         for s in wrong_smiles:
             with self.assertRaises(smiles_parser.ParserException, msg=s):
-                smiles_parser.Parser(lexer.Lexer(s)).smiles()
+                smiles_parser.parse(s)
+
+    def test_parse_chirality(self):
+
+        correct_smiles = [
+            ('[C@H](Br)(Cl)C', '@'),
+            ('[C@TH1H](Br)(Cl)C', '@TH1'),  # = "@"
+            ('[Xe@SP1H](F)(Br)Cl', '@SP1')
+        ]
+
+        for s, chirality in correct_smiles:
+            p = smiles_parser.parse(s)
+            self.assertEqual(p.chain.branched_atom.atom.chirality, chirality)
+
+        self.assertEqual(
+            smiles_parser.parse('C(Br)=[C@AL1]=C(O)C').chain.next_chain.branched_atom.atom.chirality, '@AL1')
+
+        with self.assertRaises(smiles_parser.ParserException):
+            smiles_parser.parse('[C@TH3](Br)(Cl)C')
+
+        with self.assertRaises(smiles_parser.ParserException):
+            smiles_parser.parse('[Xe@SP4](F)(Br)Cl')

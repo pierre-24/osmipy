@@ -42,8 +42,8 @@ The implementation should recognize at least two kind of stereochemistry:
     :align: center
 
 
-+ Planar stereo config (cis/trans for alcenes, square planar) ;
-+ Non planar stereo config (clockwise/anticlockwise for "asymetric" carbons).
++ Planar stereo config (square planar) ;
++ Non planar stereo config (clockwise/anticlockwise for "asymetric" carbons, allene configuration).
 
 The purpose of this stereo implementation is to match the set of indices *a, b, c and d* (which may be given in any order) with the set *0, 1, 2 and 3*.
 The value of the stereo object is the order in which the *a, b, c and d* indices must be read to match *0, 1, 2 and 3*.
@@ -103,7 +103,7 @@ The grammar used by this implementation is derived from the work done in `OpenSM
 Unless stated otherwise, this implementation follows the open specification, except:
 
 + All the ``aromatic_element`` is fully included in the ``organic_subset`` (so that ``se`` and ``as`` can be used without brackets) ;
-+ Square planar (``@SP``), bipyramidal (``@TB``) and octahedral (``@OH``) chirality are not implemented (not even in the grammar) ;
++ Bipyramidal (``@TB``) and octahedral (``@OH``) chirality are not implemented (not even in the grammar) ;
 + There is not check of the aromaticity (or not) yet (that should go into ``Validation``) ;
 + Implicit hydrogen count (for element of the so-called *organic* subset) is not always correct (especially with aromaticity, for example the nitrogen in ``n1ccccc1``) ;
 + The output is not *standardized* (nor *canonical*), especially concerning cycles and "removing chiral marking on atoms that are not" (that should go into ``Validation``) ;
