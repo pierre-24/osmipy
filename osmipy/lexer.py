@@ -63,7 +63,8 @@ class Lexer:
                 continue
 
             elif self.current_char.isalpha():
-                yield Token(ATOM, self.atom(), pos)
+                yield Token(LETTER, self.current_char, pos)
+                self.next()
                 continue
 
             else:

@@ -10,33 +10,34 @@ class LexerTestCase(OSmiPyTestCase):
         """Test that the lexer gives the good tokens"""
 
         tests = [
-            ('cccccc', [Tok(tokens.ATOM, 'c')] * 6),
+            ('cccccc', [Tok(tokens.LETTER, 'c')] * 6),
             ('C1=CC=CC=C1', [
-                Tok(tokens.ATOM, 'C'),
+                Tok(tokens.LETTER, 'C'),
                 Tok(tokens.DIGIT, 1),
                 Tok(tokens.BOND, '='),
-                Tok(tokens.ATOM, 'C'),
-                Tok(tokens.ATOM, 'C'),
+                Tok(tokens.LETTER, 'C'),
+                Tok(tokens.LETTER, 'C'),
                 Tok(tokens.BOND, '='),
-                Tok(tokens.ATOM, 'C'),
-                Tok(tokens.ATOM, 'C'),
+                Tok(tokens.LETTER, 'C'),
+                Tok(tokens.LETTER, 'C'),
                 Tok(tokens.BOND, '='),
-                Tok(tokens.ATOM, 'C'),
+                Tok(tokens.LETTER, 'C'),
                 Tok(tokens.DIGIT, 1),
             ]),
             ('N[C@](Br)(O)C', [
-                Tok(tokens.ATOM, 'N'),
+                Tok(tokens.LETTER, 'N'),
                 Tok(tokens.LSPAR, '['),
-                Tok(tokens.ATOM, 'C'),
+                Tok(tokens.LETTER, 'C'),
                 Tok(tokens.AT, '@'),
                 Tok(tokens.RSPAR, ']'),
                 Tok(tokens.LPAR, '('),
-                Tok(tokens.ATOM, 'Br'),
+                Tok(tokens.LETTER, 'B'),
+                Tok(tokens.LETTER, 'r'),
                 Tok(tokens.RPAR, ')'),
                 Tok(tokens.LPAR, '('),
-                Tok(tokens.ATOM, 'O'),
+                Tok(tokens.LETTER, 'O'),
                 Tok(tokens.RPAR, ')'),
-                Tok(tokens.ATOM, 'C'),
+                Tok(tokens.LETTER, 'C'),
             ])
         ]
 

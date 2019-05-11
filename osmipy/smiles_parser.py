@@ -76,11 +76,10 @@ class Parser:
             self.next()
 
         # symbol
-        if self.current_token.type != ATOM:
+        if self.current_token.type != LETTER:
             raise ParserException(self.current_token, 'expected ATOM in bracket_atom')
 
-        symbol = self.current_token.value
-        self.next()
+        symbol = self.atomic_symbol()
 
         # chirality
         if self.current_token.type == AT:
@@ -92,7 +91,7 @@ class Parser:
                 self.next()
 
         # hcount
-        if self.current_token.type == ATOM:
+        if self.current_token.type == LETTER:
             if self.current_token.value != 'H':
                 raise ParserException(self.current_token, 'expected hydrogen in hcount')
             self.next()
@@ -134,6 +133,21 @@ class Parser:
 
         return Atom(symbol=symbol, isotope=isotope, chirality=chirality, hcount=hcount, charge=charge, klass=klass)
 
+    def atomic_symbol(self):
+        symbol = self.current_token.value
+        self.next()
+
+        if self.current_token.type == LETTER:
+            n_symbol = symbol + self.current_token.value
+            if n_symbol in TOT_SYMBOLS:
+                self.next()
+                return n_symbol
+
+        if symbol not in TOT_SYMBOLS:
+            raise ParserException(self.current_token, '{} is not a valid symbol'.format(symbol))
+
+        return symbol
+
     def atom(self):
         """
 
@@ -142,11 +156,10 @@ class Parser:
 
         if self.current_token.type == LSPAR:
             atom = self.bracket_atom()
-        elif self.current_token.type == ATOM:
+        elif self.current_token.type == LETTER:
             if self.current_token.value not in ORGANIC_SUBSET:
                 raise ParserException(self.current_token.position, '{} should be bracketed!')
-            atom = Atom(symbol=self.current_token.value)
-            self.next()
+            atom = Atom(symbol=self.atomic_symbol())
         elif self.current_token.type == WILDCARD:
             atom = Atom(symbol=self.current_token.value)
             self.next()
@@ -327,7 +340,7 @@ class Parser:
                 bond = Bond(self.current_token.value)
                 self.next()
 
-        if self.current_token.type in [ATOM, LSPAR]:
+        if self.current_token.type in [LETTER, LSPAR]:
             right = self.chain()
         elif bond is not None:
             raise ParserException(self.current_token, 'bond but no chain')

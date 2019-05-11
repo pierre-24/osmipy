@@ -287,7 +287,7 @@ class SMILESTestCase(OSmiPyTestCase):
             '[NH4+].[NH4+].[O-]S(=O)(=O)[S-]',
             'c1c2c3c4cc1.Br2.Cl3.Cl4',
             'c1ccccc1c1ccccc1'  # two times the same ring id
-            'c1cc2cc3.c1cc2cc3',  # a very weird way of  generating an aromatic structure
+            'c1cc2cc3.c1cc2cc3',  # a very weird way of generating an aromatic structure
         ]
 
         for smi in test_smiles:

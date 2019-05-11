@@ -1,5 +1,5 @@
-ATOM, BOND, DIGIT, LPAR, RPAR, LSPAR, RSPAR, PLUS, MINUS, DOT, WILDCARD, PERCENT, AT, COLON, EOF = (
-    'ATOM', 'BOND', 'DIGIT', '(', ')', '[', ']', '+', '-', '.', '*', '%', '@', ':', 'EOF'
+LETTER, BOND, DIGIT, LPAR, RPAR, LSPAR, RSPAR, PLUS, MINUS, DOT, WILDCARD, PERCENT, AT, COLON, EOF = (
+    'LETTER', 'BOND', 'DIGIT', '(', ')', '[', ']', '+', '-', '.', '*', '%', '@', ':', 'EOF'
 )
 
 SYMBOLS_TR = {
