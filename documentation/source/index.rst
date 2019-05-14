@@ -11,7 +11,7 @@ Documentation
     :maxdepth: 2
 
     install
-    about-smiles
+    tutorial
     api
     contributing
 

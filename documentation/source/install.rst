@@ -4,7 +4,7 @@ Installing ``osmipy``
 Normal install
 --------------
 
-To just use ``qcip_tools`` in your Python projects, simply use pip:
+To just use ``osmipy`` in your Python projects, simply use pip:
 
 .. code-block:: bash
 
@@ -21,7 +21,7 @@ You can also add it to your ``requirements.txt`` or Pipenv's  ``Pipfile``:
     git+ssh://git@github.com:pierre-24/osmipy.git@dev
 
     # Pipfile style
-    qcip-tools = {ref = "dev", git = "ssh://git@github.com:pierre-24/osmipy.git"}
+    osmipy = {ref = "dev", git = "ssh://git@github.com:pierre-24/osmipy.git"}
 
 
 Installation for contributors
