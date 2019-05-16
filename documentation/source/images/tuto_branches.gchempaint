@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<gcp:chemistry xmlns:gcp="http://www.nongnu.org/gchempaint" creation="05/16/2019" revision="05/16/2019">
+  <generator>GChemPaint 0.14.17</generator>
+  <theme name="GChemPaint" bond-length="140" bond-angle="120" bond-dist="5" bond-width="1" arrow-length="200" arrow-head-a="6" arrow-head-b="8" arrow-head-c="4" arrow-dist="5" arrow-width="1" arrow-padding="16" hash-width="1" hash-dist="2" stereo-bond-width="5" zoom-factor="4" padding="2" stoichiometry-padding="1" object-padding="16" sign-padding="8" charge-sign-size="9" font-family="Bitstream Vera Sans" font-style="normal" font-weight="normal" font-variant="normal" font-stretch="normal" font-size="12288" text-font-family="Bitstream Vera Serif" text-font-style="normal" text-font-weight="normal" text-font-variant="normal" text-font-stretch="normal" text-font-size="12288"/>
+  <molecule id="m1">
+    <atom id="a1" element="C">
+      <position x="485.1220703125" y="657.3565673828125"/>
+    </atom>
+    <atom id="a2" element="O">
+      <position x="485.1220703125" y="517.3565673828125"/>
+    </atom>
+    <atom id="a3" element="O">
+      <position x="606.36562684232138" y="727.3565673828125"/>
+    </atom>
+    <atom id="a9" element="C">
+      <position x="363.87851378267862" y="727.3565673828125"/>
+    </atom>
+    <bond id="b1" order="2" begin="a1" end="a2"/>
+    <bond id="b2" order="1" begin="a1" end="a3"/>
+    <bond id="b7" order="1" begin="a1" end="a9"/>
+  </molecule>
+  <molecule id="m2">
+    <atom id="a10" element="C">
+      <position x="2176.8566461519645" y="766.1575927734375"/>
+    </atom>
+    <atom id="a11" element="C">
+      <position x="1813.1259765625" y="696.1575927734375"/>
+    </atom>
+    <atom id="a12" element="C">
+      <position x="1934.3695330923215" y="766.1575927734375"/>
+    </atom>
+    <atom id="a13" element="C">
+      <position x="1701.5341411407908" y="754.33320581087025"/>
+    </atom>
+    <atom id="a14" element="C">
+      <position x="2055.613089622143" y="696.1575927734375"/>
+    </atom>
+    <atom id="a17" element="C">
+      <position x="1903.1162419186155" y="588.91137073678055"/>
+    </atom>
+    <atom id="a18" element="N">
+      <position x="1855.2334218530218" y="457.35440382675341"/>
+    </atom>
+    <bond id="b10" order="1" begin="a11" end="a13"/>
+    <bond id="b11" order="1" begin="a12" end="a14"/>
+    <bond id="b12" order="1" begin="a14" end="a15"/>
+    <bond id="b13" order="1" begin="a11" end="a16"/>
+    <bond id="b14" order="1" begin="a11" end="a17"/>
+    <bond id="b15" order="1" begin="a17" end="a18"/>
+    <bond id="b8" order="1" begin="a14" end="a10"/>
+    <bond id="b9" order="1" begin="a11" end="a12"/>
+    <fragment id="f1">
+      <residue id="a16" raw="C1H4" generic="false">Me<symbols>Me</symbols><name>Methyl</name><name xml:lang="de">Methyl</name><name xml:lang="el">&#x39C;&#x3AD;&#x3B8;&#x3C5;&#x3BB;&#x3BF;</name><name xml:lang="es">Metilo</name><name xml:lang="eu">Metiloa</name><name xml:lang="fr">M&#xE9;thyle</name><name xml:lang="pl">Metyl</name><name xml:lang="zh_CN">&#x7532;&#x57FA;</name><name xml:lang="zh_TW">Methyl &#x7532;&#x57FA;</name><molecule id="m1"><pseudo-atom id="a1"><position x="24" y="600"/></pseudo-atom><atom id="a2" element="C"><position x="164" y="600"/></atom><bond id="b1" order="1" begin="a1" end="a2"/></molecule></residue>
+      <position x="1733.2861328125" y="588.856201171875"/>
+    </fragment>
+    <fragment id="f7">
+      <residue id="a15">Me</residue>
+      <position x="2055.613089622143" y="556.1575927734375"/>
+    </fragment>
+  </molecule>
+  <molecule id="m4">
+    <atom id="a19" element="Cl">
+      <position x="963.62109375000011" y="439.9876708984375"/>
+    </atom>
+    <atom id="a20" element="C">
+      <position x="1206.108206809643" y="439.9876708984375"/>
+    </atom>
+    <atom id="a21" element="O">
+      <position x="1206.108206809643" y="299.9876708984375"/>
+    </atom>
+    <atom id="a4" element="C">
+      <position x="1327.3517633394645" y="649.9876708984375"/>
+    </atom>
+    <atom id="a5" element="C">
+      <position x="963.62109375000011" y="719.9876708984375"/>
+    </atom>
+    <atom id="a6" element="C">
+      <position x="1084.8646502798215" y="649.9876708984375"/>
+    </atom>
+    <atom id="a7" element="C">
+      <position x="1084.8646502798215" y="509.9876708984375"/>
+    </atom>
+    <atom id="a8" element="C">
+      <position x="1206.108206809643" y="719.9876708984375"/>
+    </atom>
+    <bond id="b16" order="1" begin="a7" end="a19"/>
+    <bond id="b17" order="1" begin="a7" end="a20"/>
+    <bond id="b18" order="1" begin="a20" end="a21"/>
+    <bond id="b3" order="1" begin="a8" end="a4"/>
+    <bond id="b4" order="1" begin="a6" end="a5"/>
+    <bond id="b5" order="1" begin="a6" end="a7"/>
+    <bond id="b6" order="1" begin="a6" end="a8"/>
+  </molecule>
+  <text id="o1">
+    <position x="339.666015625" y="879.7451171875"/>
+    <font name="Bitstream Vera Serif, 12">CC(=O)O</font>
+  </text>
+  <text id="o2">
+    <position x="904.5087890625" y="894.779052734375"/>
+    <font name="Bitstream Vera Serif, 12">C(C(Cl)CO)CCC</font>
+  </text>
+  <text id="o3">
+    <position x="1667.9658203125" y="893.1771240234375"/>
+    <font name="Bitstream Vera Serif, 12">C(C)(CN)CC(C)C</font>
+  </text>
+</gcp:chemistry>

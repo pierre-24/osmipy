@@ -14,14 +14,61 @@ Therefore, many SMILES are possible (including very peculiar ones) for a given m
 
 Such SMILES string consists of a series of characters, without space.
 
-
 .. note::
 
-    To be continued
+    Complete explanations of the SMILES syntax are provided for example on the `SMILES theory page of Daylight <http://www.daylight.com/dayhtml/doc/theory/theory.smiles.html>`_.
+    A small introduction is given in the next sections.
 
 
-Further explanation are provided for example on the `SMILES theory page of Daylight <http://www.daylight.com/dayhtml/doc/theory/theory.smiles.html>`_.
 
+Atoms
+_____
+
+The atomic symbol is used to specify an atom, **in square bracket**, except for the atom in the *organic subset*: B, C, N, O, S, P, Cl, Br (plus ``as`` and ``se``, but only in their aromatic form).
+
++ For the atom outside this organic subset, the number of hydrogen and charge must be specified, e.g. ``[H+]``, ``[Al+3]``, ``[BH3]``, ``[NaH]`` ...
++ For atom in the organic susbet, the number of hydrogen is assumed, in order to match the lowest valence, consistant with explicit bond. Thus,
+
+  + ``C`` represent the methane ;
+  + ``Cl`` represent the hydrogen chloride ;
+  + ``O`` represent the water molecule ;
+  + ...
+
+  To give an explicit count of hydrogen or a charge, square bracket can be used, for example ``[NH4+]`` for the ammonium cation.
++ To differentiate atom that are in an aromatic cycle, those atoms must be lowercase.
+  For example, ``c`` is used for the carbon in benzene, instead of ``C``.
+  This is only valid for atom in the organic subset, except Br and Cl.
+
+
+Bonds
+_____
+
+Adjacent atoms are assumed to be connected to each other by a single (or aromatic) bond.
+Thus ``CCO`` is used to represent ethanol, while ``COC`` stands for dimethyl ether.
+Double and triple bonds are explicitly marked, with ``=`` or ``#``, respectively.
+The symbol ``-`` can be used for single bond, but is usually implicit.
+
+For example,
+
++ ``CCC`` represent the propane ;
++ ``C=CC=C`` represent the butene ;
++ ``O=C=O`` stands for carbon dioxyde ;
++ ``CC#N`` represent the acetonitrile.
+
+Branches and cycles
+___________________
+
+Branches are given in parentheses, which are linked to the previous atom (to the left).
+Parentheses can be nested and stacked.
+
+.. figure:: ../images/tuto_branches.png
+    :align: center
+
+    Different branched molecules and their corresponding SMILES.
+
+
+About canonical SMILES
+______________________
 
 To handle this, people propose canonicalization schemes, that consists in two parts:
 
