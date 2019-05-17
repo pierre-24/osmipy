@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<gcp:chemistry xmlns:gcp="http://www.nongnu.org/gchempaint" creation="05/17/2019" revision="05/17/2019">
+  <generator>GChemPaint 0.14.17</generator>
+  <author name="pierre"/>
+  <theme name="GChemPaint" bond-length="140" bond-angle="120" bond-dist="5" bond-width="1" arrow-length="200" arrow-head-a="6" arrow-head-b="8" arrow-head-c="4" arrow-dist="5" arrow-width="1" arrow-padding="16" hash-width="1" hash-dist="2" stereo-bond-width="5" zoom-factor="4" padding="2" stoichiometry-padding="1" object-padding="16" sign-padding="8" charge-sign-size="9" font-family="Bitstream Vera Sans" font-style="normal" font-weight="normal" font-variant="normal" font-stretch="normal" font-size="12288" text-font-family="Bitstream Vera Serif" text-font-style="normal" text-font-weight="normal" text-font-variant="normal" text-font-stretch="normal" text-font-size="12288"/>
+  <molecule id="m1">
+    <atom id="a1" element="Na" charge="1" charge-position="se">
+      <position x="2052.3271484375" y="878.2001953125"/>
+    </atom>
+  </molecule>
+  <molecule id="m2">
+    <atom id="a3" element="O">
+      <position x="1723.4765625" y="678.001708984375"/>
+    </atom>
+    <atom id="a4" element="C">
+      <position x="1723.4765625" y="818.001708984375"/>
+    </atom>
+    <atom id="a5" element="O" charge="-1">
+      <position x="1844.7201190298215" y="888.001708984375"/>
+    </atom>
+    <atom id="a6" element="C">
+      <position x="1602.2330059701785" y="888.001708984375"/>
+    </atom>
+    <bond id="b2" order="2" begin="a3" end="a4"/>
+    <bond id="b3" order="1" begin="a4" end="a5"/>
+    <bond id="b4" order="1" begin="a4" end="a6"/>
+  </molecule>
+  <text id="o1">
+    <position x="1560.2158203125" y="1057.808349609375"/>
+    <font name="Bitstream Vera Serif, 12">C(=O)[O-].[Na+]</font>
+  </text>
+</gcp:chemistry>

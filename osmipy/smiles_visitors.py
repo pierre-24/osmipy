@@ -158,7 +158,7 @@ class Interpreter(visitor.NodeVisitor):
             LSPAR if bracketed else '',
             node.isotope if node.isotope > 0 else '',
             node.symbol,
-            node.chirality if node.chirality is not None else '',
+            node.configuration if node.configuration is not None else '',
             ('H' + (str(node.hcount) if node.hcount > 1 else '')) if node.hcount > 0 else '',
             charge,
             '{}{}'.format(COLON, node.klass) if node.klass > 0 else '',

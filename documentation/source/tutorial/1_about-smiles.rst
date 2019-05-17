@@ -66,33 +66,33 @@ Parentheses can be nested and stacked.
 
     Different branched molecules and their corresponding SMILES.
 
+Cycles are represented by cutting one bond in each cycle and "linking" the corresponding two ends through a *ring id*.
+For example,
 
-About canonical SMILES
-______________________
+.. figure:: ../images/tuto_cycles.png
+    :align: center
 
-To handle this, people propose canonicalization schemes, that consists in two parts:
+    Different branched cyclic molecule and their corresponding SMILES.
+    An atom can be the source (or the destination) of multiple rings, and thus may have multiple *ring id* (see molecule 3).
+    Notice that the "cut" is arbitrary.
 
-1. Renumber the atoms (the vertices of the graph) based on some invariant(s), in a way that is (normally) unique ;
-2. Starts by the atom with the lowest number out of the previous step, and perform some branching decision during the exploration (once again, in a *unique* way).
+A last type of bond is useful to represent "disconnected" structures, the dot.
+It is used for example to represent a cation-anion pair:
 
-The critical part is actually the first one.
-For example, the algorithm developed by D. Weininger in 1989 (CANGEN) fails for some structures.
+.. figure:: ../images/tuto_disc.png
+    :align: center
 
-About "stereochemistry"
------------------------
+    The dot is used to represent sodium acetate, which has an ionic bond.
 
-**TL;DR:**  SMILES is not about absolute stereochemistry (in the CIP sense), it is local stereochemistry.
+This dot bond assumes that the atoms are not linked together ... Even though they may be trough a common ring id.
+Thus, ``C1.C1`` is a valid representation of the ethane.
 
-Background
-__________
+Molecular configuration
+_______________________
 
-Implementation of the stereo perception is directly inspired by `OpenBabel implementation of stereoconcepts <http://openbabel.org/dev-api/classOpenBabel_1_1OBStereoBase.shtml>`_, which was implemented in the same spirit as SMILES.
-In SMILES (and therefore here), one only cares about **local** stereochemistry: even though a carbon may not be asymetric (in the CIP sense), it may present a **local** configuration.
-There is therefore **no** correspondence between the configuration in a SMILE string and the absolute configuration (although if the vertex are given in the correct order in the CIP way, that corresponds to R/S stereo configuration for tetrahedral carbons).
-One only cares about the correspondance between the vertices, given in a certain order, and the "reality" of the structure.
-
-In practice
-___________
+In SMILES, one only cares about **local** configuration: even though a carbon may not be assymetric (in the CIP sense), it may present a configuration.
+There is therefore **no** correspondence between the configuration in a SMILE string and the absolute configuration in the CIP sense (although if the vertex are given in the correct order in the CIP way, that corresponds to R/S stereo configuration for tetrahedral carbons).
+One only cares about the correspondance between the branches given in a certain order, and the "reality" of the structure.
 
 Stereochemistry is defined for any set of 4 atoms that contains at most 1 hydrogen (non-planar) or 2 (planar).
 The implementation should recognize at least two kind of stereochemistry:
@@ -115,6 +115,21 @@ For the planar stereo configuration, there is three possible values: ``U``, ``Z`
 
     The question is always "how to read ``(a,b,c,d)`` so that the sequence matches ``(0,1,2,3)``".
     To do so, the first part is to set a ``start`` atom (the others are the ``refs`` in the implementation) and set the corresponding ``value``.
+
+
+
+About canonical SMILES
+______________________
+
+There is therefore many way to make a valid SMILES for a given molecule.
+To handle this, people propose canonicalization schemes (rewrite the SMILES string in a way that the output is always the same for a given molecule), that consists in two parts:
+
+1. Renumber the atoms (the vertices of the graph) based on some invariant(s), in a way that is (normally) unique ;
+2. Starts by the atom with the lowest number out of the previous step, and perform some branching decision during the exploration (once again, in a *unique* way).
+
+The critical part is actually the first one.
+For example, the algorithm developed by D. Weininger in 1989 (CANGEN) fails for some structures.
+
 
 
 Parsing SMILES with ``osmipy``

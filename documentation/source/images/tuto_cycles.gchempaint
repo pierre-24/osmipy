@@ -1,0 +1,267 @@
+<?xml version="1.0"?>
+<gcp:chemistry xmlns:gcp="http://www.nongnu.org/gchempaint" creation="05/17/2019" revision="05/17/2019">
+  <generator>GChemPaint 0.14.17</generator>
+  <author name="pierre"/>
+  <theme name="GChemPaint" bond-length="140" bond-angle="120" bond-dist="5" bond-width="1" arrow-length="200" arrow-head-a="6" arrow-head-b="8" arrow-head-c="4" arrow-dist="5" arrow-width="1" arrow-padding="16" hash-width="1" hash-dist="2" stereo-bond-width="5" zoom-factor="4" padding="2" stoichiometry-padding="1" object-padding="16" sign-padding="8" charge-sign-size="9" font-family="Bitstream Vera Sans" font-style="normal" font-weight="normal" font-variant="normal" font-stretch="normal" font-size="12288" text-font-family="Bitstream Vera Serif" text-font-style="normal" text-font-weight="normal" text-font-variant="normal" text-font-stretch="normal" text-font-size="12288"/>
+  <molecule id="m1">
+    <atom id="a1" element="C">
+      <position x="195.123046875" y="723.53857421875"/>
+    </atom>
+    <atom id="a2" element="C">
+      <position x="195.123046875" y="583.53857421875"/>
+    </atom>
+    <atom id="a3" element="C">
+      <position x="316.36660340482138" y="513.53857421875"/>
+    </atom>
+    <atom id="a4" element="C">
+      <position x="437.61015993464275" y="583.53857421875"/>
+    </atom>
+    <atom id="a5" element="C">
+      <position x="437.61015993464275" y="723.53857421875"/>
+    </atom>
+    <atom id="a6" element="C">
+      <position x="316.36660340482138" y="793.53857421875"/>
+    </atom>
+    <bond id="b1" order="2" begin="a1" end="a2"/>
+    <bond id="b2" order="1" begin="a2" end="a3"/>
+    <bond id="b3" order="2" begin="a3" end="a4"/>
+    <bond id="b4" order="1" begin="a4" end="a5"/>
+    <bond id="b5" order="2" begin="a5" end="a6"/>
+    <bond id="b6" order="1" begin="a6" end="a1"/>
+  </molecule>
+  <molecule id="m2">
+    <atom id="a10" element="C">
+      <position x="1118.5121112173215" y="595.0242919921875"/>
+    </atom>
+    <atom id="a11" element="C">
+      <position x="1118.5121112173215" y="735.0242919921875"/>
+    </atom>
+    <atom id="a12" element="C">
+      <position x="997.2685546875" y="805.0242919921875"/>
+    </atom>
+    <atom id="a7" element="C">
+      <position x="876.02499815767851" y="735.0242919921875"/>
+    </atom>
+    <atom id="a8" element="C">
+      <position x="876.02499815767851" y="595.0242919921875"/>
+    </atom>
+    <atom id="a9" element="C">
+      <position x="997.2685546875" y="525.0242919921875"/>
+    </atom>
+    <bond id="b10" order="1" begin="a10" end="a11"/>
+    <bond id="b11" order="2" begin="a11" end="a12"/>
+    <bond id="b12" order="1" begin="a12" end="a7"/>
+    <bond id="b7" order="2" begin="a7" end="a8"/>
+    <bond id="b9" order="2" begin="a9" end="a10"/>
+  </molecule>
+  <molecule id="m3">
+    <atom id="a13" element="C">
+      <position x="1562.1748046875" y="721.2430419921875"/>
+    </atom>
+    <atom id="a14" element="C">
+      <position x="1562.1748046875" y="581.2430419921875"/>
+    </atom>
+    <atom id="a15" element="N">
+      <position x="1695.3227169688216" y="537.98066277969485"/>
+    </atom>
+    <atom id="a16" element="C">
+      <position x="1777.612652289768" y="651.2430419921875"/>
+    </atom>
+    <atom id="a17" element="C">
+      <position x="1695.3227169688216" y="764.50542120468015"/>
+    </atom>
+    <atom id="a34" element="F">
+      <position x="1738.5850961813142" y="897.65333348600166"/>
+    </atom>
+    <bond id="b13" order="1" begin="a14" end="a15"/>
+    <bond id="b14" order="1" begin="a15" end="a16"/>
+    <bond id="b15" order="2" begin="a16" end="a17"/>
+    <bond id="b16" order="1" begin="a17" end="a13"/>
+    <bond id="b21" order="1" begin="a13" end="a27"/>
+    <bond id="b29" order="1" begin="a17" end="a34"/>
+    <bond id="b8" order="2" begin="a13" end="a14"/>
+    <fragment id="f1">
+      <residue id="a27" raw="C1H4" generic="false">Me<symbols>Me</symbols><name>Methyl</name><name xml:lang="de">Methyl</name><name xml:lang="el">&#x39C;&#x3AD;&#x3B8;&#x3C5;&#x3BB;&#x3BF;</name><name xml:lang="es">Metilo</name><name xml:lang="eu">Metiloa</name><name xml:lang="fr">M&#xE9;thyle</name><name xml:lang="pl">Metyl</name><name xml:lang="zh_CN">&#x7532;&#x57FA;</name><name xml:lang="zh_TW">Methyl &#x7532;&#x57FA;</name><molecule id="m1"><pseudo-atom id="a1"><position x="24" y="600"/></pseudo-atom><atom id="a2" element="C"><position x="164" y="600"/></atom><bond id="b1" order="1" begin="a1" end="a2"/></molecule></residue>
+      <position x="1448.9124254750072" y="803.53297731313376"/>
+    </fragment>
+  </molecule>
+  <molecule id="m4">
+    <atom id="a18" element="C">
+      <position x="1439.8636915440447" y="1371.0774786687462"/>
+    </atom>
+    <atom id="a19" element="C">
+      <position x="1439.8636915440447" y="1231.0774786687462"/>
+    </atom>
+    <atom id="a20" element="C">
+      <position x="1561.1072480738662" y="1161.0774786687464"/>
+    </atom>
+    <atom id="a21" element="C">
+      <position x="1682.3508046036877" y="1231.0774786687462"/>
+    </atom>
+    <atom id="a22" element="C">
+      <position x="1682.3508046036877" y="1371.0774786687462"/>
+    </atom>
+    <atom id="a23" element="C">
+      <position x="1561.1072480738662" y="1441.0774786687462"/>
+    </atom>
+    <atom id="a24" element="N">
+      <position x="1815.4987168850093" y="1187.8150994562536"/>
+    </atom>
+    <atom id="a25" element="C">
+      <position x="1897.7886522059557" y="1301.0774786687462"/>
+    </atom>
+    <atom id="a26" element="C">
+      <position x="1815.4987168850093" y="1414.3398578812394"/>
+    </atom>
+    <bond id="b17" order="1" begin="a18" end="a19"/>
+    <bond id="b18" order="2" begin="a19" end="a20"/>
+    <bond id="b19" order="1" begin="a20" end="a21"/>
+    <bond id="b20" order="2" begin="a21" end="a22"/>
+    <bond id="b22" order="2" begin="a23" end="a18"/>
+    <bond id="b23" order="1" begin="a21" end="a24"/>
+    <bond id="b24" order="1" begin="a24" end="a25"/>
+    <bond id="b25" order="2" begin="a25" end="a26"/>
+  </molecule>
+  <molecule id="m5">
+    <atom id="a28" element="C">
+      <position x="2189.0372658051124" y="729.36152712155445"/>
+    </atom>
+    <atom id="a29" element="C">
+      <position x="2189.0372658051124" y="589.36152712155445"/>
+    </atom>
+    <atom id="a30" element="N">
+      <position x="2322.185178086434" y="546.09914790906168"/>
+    </atom>
+    <atom id="a31" element="C">
+      <position x="2404.4751134073804" y="659.36152712155445"/>
+    </atom>
+    <atom id="a32" element="C">
+      <position x="2322.185178086434" y="772.62390633404721"/>
+    </atom>
+    <atom id="a35" element="F">
+      <position x="2379.1283081170459" y="900.5202704040114"/>
+    </atom>
+    <bond id="b26" order="1" begin="a29" end="a30"/>
+    <bond id="b27" order="1" begin="a30" end="a31"/>
+    <bond id="b28" order="2" begin="a31" end="a32"/>
+    <bond id="b30" order="1" begin="a28" end="a33"/>
+    <bond id="b31" order="2" begin="a28" end="a29"/>
+    <bond id="b32" order="1" begin="a32" end="a35"/>
+    <fragment id="f2">
+      <residue id="a33">Me</residue>
+      <position x="2075.7748865926196" y="811.65146244250082"/>
+    </fragment>
+  </molecule>
+  <molecule id="m9">
+    <atom id="a43" element="C">
+      <position x="563.05126953125" y="1403.9296264648438"/>
+    </atom>
+    <atom id="a44" element="C">
+      <position x="563.05126953125" y="1263.9296264648438"/>
+    </atom>
+    <atom id="a45" element="C">
+      <position x="684.29482606107149" y="1193.9296264648438"/>
+    </atom>
+    <atom id="a46" element="C">
+      <position x="805.53838259089298" y="1263.9296264648438"/>
+    </atom>
+    <atom id="a47" element="C">
+      <position x="805.53838259089298" y="1403.9296264648438"/>
+    </atom>
+    <atom id="a48" element="C">
+      <position x="684.29482606107149" y="1473.9296264648438"/>
+    </atom>
+    <atom id="a49" element="N">
+      <position x="938.6862948722146" y="1220.667247252351"/>
+    </atom>
+    <atom id="a50" element="C">
+      <position x="1020.976230193161" y="1333.9296264648438"/>
+    </atom>
+    <atom id="a51" element="C">
+      <position x="938.6862948722146" y="1447.1920056773365"/>
+    </atom>
+    <bond id="b41" order="1" begin="a43" end="a44"/>
+    <bond id="b42" order="2" begin="a44" end="a45"/>
+    <bond id="b43" order="1" begin="a45" end="a46"/>
+    <bond id="b44" order="2" begin="a46" end="a47"/>
+    <bond id="b45" order="1" begin="a47" end="a48"/>
+    <bond id="b46" order="2" begin="a48" end="a43"/>
+    <bond id="b47" order="1" begin="a46" end="a49"/>
+    <bond id="b48" order="1" begin="a49" end="a50"/>
+    <bond id="b49" order="2" begin="a50" end="a51"/>
+    <bond id="b50" order="1" begin="a51" end="a47"/>
+  </molecule>
+  <text id="o1">
+    <position x="867.992431640625" y="547.862548828125"/>
+    <font name="Bitstream Vera Serif, 10">
+      <fore red="1">1</fore>
+    </font>
+    <font name="Bitstream Vera Serif, 12"/>
+  </text>
+  <text id="o10">
+    <position x="1963.536376953125" y="1016.0679931640625"/>
+    <font name="Bitstream Vera Serif, 12">Cc1c[nH]cc1F</font>
+  </text>
+  <text id="o2">
+    <position x="943.6243896484375" y="496.09716796875"/>
+    <font name="Bitstream Vera Serif, 10">
+      <fore red="1">1</fore>
+    </font>
+    <font name="Bitstream Vera Serif, 12"/>
+  </text>
+  <text id="o3">
+    <position x="847.682861328125" y="885.3480224609375"/>
+    <font name="Bitstream Vera Serif, 12">c1ccccc1</font>
+  </text>
+  <text id="o4">
+    <position x="1569.1025390625" y="1440.22265625"/>
+    <font name="Bitstream Vera Serif, 10">
+      <fore red="1">1</fore>
+    </font>
+    <font name="Bitstream Vera Serif, 12"/>
+  </text>
+  <text id="o5">
+    <position x="1777.02490234375" y="1425.1907958984375"/>
+    <font name="Bitstream Vera Serif, 10">
+      <fore red="1">2</fore>
+    </font>
+    <font name="Bitstream Vera Serif, 12"/>
+  </text>
+  <text id="o6">
+    <position x="1642.228515625" y="1399.47412109375"/>
+    <font name="Bitstream Vera Serif, 10">
+      <fore red="1">1,2</fore>
+    </font>
+    <font name="Bitstream Vera Serif, 12"/>
+  </text>
+  <text id="o7">
+    <position x="1306.19384765625" y="1548.6322021484375"/>
+    <font name="Bitstream Vera Serif, 12">c1cccc(c12)[nH]cc2</font>
+  </text>
+  <text id="o8">
+    <position x="2173.664306640625" y="765.2755126953125"/>
+    <font name="Bitstream Vera Serif, 10">
+      <fore red="1">1</fore>
+    </font>
+    <font name="Bitstream Vera Serif, 12"/>
+  </text>
+  <text id="o9">
+    <position x="2279.659912109375" y="801.0565185546875"/>
+    <font name="Bitstream Vera Serif, 10">
+      <fore red="1">1</fore>
+    </font>
+    <font name="Bitstream Vera Serif, 12"/>
+  </text>
+  <retrosynthesis-arrow id="rsa1">
+    <start x="561.339599609375" y="665.392578125"/>
+    <end x="761.339599609375" y="665.392578125"/>
+  </retrosynthesis-arrow>
+  <retrosynthesis-arrow id="rsa2">
+    <start x="1854.001953125" y="646.1673583984375"/>
+    <end x="2054.001953125" y="646.1673583984375"/>
+  </retrosynthesis-arrow>
+  <retrosynthesis-arrow id="rsa3">
+    <start x="1089.20458984375" y="1357.8028564453125"/>
+    <end x="1289.20458984375" y="1357.8028564453125"/>
+  </retrosynthesis-arrow>
+</gcp:chemistry>

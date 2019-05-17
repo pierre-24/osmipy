@@ -148,7 +148,7 @@ class Parser:
 
         self.eat(RSPAR)
 
-        return Atom(symbol=symbol, isotope=isotope, chirality=chirality, hcount=hcount, charge=charge, klass=klass)
+        return Atom(symbol=symbol, isotope=isotope, configuration=chirality, hcount=hcount, charge=charge, klass=klass)
 
     def atomic_symbol(self):
         symbol = self.current_token.value

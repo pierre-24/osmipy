@@ -1014,13 +1014,13 @@ class Atom(AST):
     :type klass: int
     """
 
-    def __init__(self, symbol, isotope=0, chirality=None, hcount=0, charge=0, klass=0, atom_id=-1):
+    def __init__(self, symbol, isotope=0, configuration=None, hcount=0, charge=0, klass=0, atom_id=-1):
         super().__init__()
 
         # set
         self.symbol = symbol
         self.isotope = isotope
-        self.chirality = chirality
+        self.configuration = configuration
         self.hcount = hcount
         self.charge = charge
         self.klass = klass
@@ -1037,11 +1037,11 @@ class Atom(AST):
         :rtype: bool
         """
         return self.isotope > 0 or \
-            self.chirality is not None or \
-            self.hcount != 0 or \
-            self.charge != 0 or \
-            self.klass > 0 or \
-            self.symbol not in ORGANIC_SUBSET + [WILDCARD]
+               self.configuration is not None or \
+               self.hcount != 0 or \
+               self.charge != 0 or \
+               self.klass > 0 or \
+               self.symbol not in ORGANIC_SUBSET + [WILDCARD]
 
     @property
     def organic(self):

@@ -143,10 +143,10 @@ class ParserTestCase(OSmiPyTestCase):
 
         for s, chirality in correct_smiles:
             p = smiles_parser.parse(s)
-            self.assertEqual(p.chain.branched_atom.atom.chirality, chirality)
+            self.assertEqual(p.chain.branched_atom.atom.configuration, chirality)
 
         self.assertEqual(
-            smiles_parser.parse('C(Br)=[C@AL1]=C(O)C').chain.next_chain.branched_atom.atom.chirality, '@AL1')
+            smiles_parser.parse('C(Br)=[C@AL1]=C(O)C').chain.next_chain.branched_atom.atom.configuration, '@AL1')
 
         with self.assertRaises(smiles_parser.ParserException):
             smiles_parser.parse('[C@TH3](Br)(Cl)C')
