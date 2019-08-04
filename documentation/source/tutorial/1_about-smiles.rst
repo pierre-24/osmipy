@@ -95,28 +95,41 @@ There is therefore **no** correspondence between the configuration in a SMILE st
 One only cares about the correspondance between the branches given in a certain order, and the "reality" of the structure.
 
 Stereochemistry is defined for any set of 4 atoms that contains at most 1 hydrogen (non-planar) or 2 (planar).
-The implementation should recognize at least two kind of stereochemistry:
+The implementation recognize at least those kind of stereochemistry:
 
-.. figure:: ../images/stereo.png
+.. figure:: ../images/tuto_stereo.png
     :align: center
 
 
-+ Planar stereo config (square planar) ;
++ Planar stereo config (square planar and cis/trans configuration) ;
 + Non planar stereo config (clockwise/anticlockwise for "asymetric" carbons, allene configuration).
 
 The purpose of this stereo implementation is to match the set of indices *a, b, c and d* (which may be given in any order) with the set *0, 1, 2 and 3*.
 The value of the stereo object is the order in which the *a, b, c and d* indices must be read to match *0, 1, 2 and 3*.
 
 For the non planar stereo configuration, there is two possible values: clockwise (``@@``) and counterclockwise (``@``).
-For the planar stereo configuration, there is three possible values: ``U``, ``Z`` and ``4``.
+For the planar stereo configuration, there is three possible values: ``@SP1`` (shape of a ``U``), ``@SP2`` (``4``) and ``@SP3`` (``Z``).
 
-.. figure:: ../images/stereo_vals.png
+.. figure:: ../images/tuto_stereo_vals.png
     :align: center
 
     The question is always "how to read ``(a,b,c,d)`` so that the sequence matches ``(0,1,2,3)``".
-    To do so, the first part is to set a ``start`` atom (the others are the ``refs`` in the implementation) and set the corresponding ``value``.
 
+For example,
 
+.. figure:: ../images/tuto_stereo1.png
+    :align: center
+
+    All SMILES are equivalent representation of (S)-bromofluorochloromethane (left) and `cisplatin <https://en.wikipedia.org/wiki/Cisplatin>`_ (right)
+    Notice that when there is a H, if you precise it with the carbon, it is the first atom from which you start the rotation.
+
+The cis/trans configuration requires two special type of bond: ``\`` and ``/``, which visually represent if the group is "above" or "below" the alkene bond.
+This interpretation is **relative to the carbon atom**.
+
+.. figure:: ../images/tuto_cistrans.png
+    :align: center
+
+    Exemple of a cis (right, Z) or trans (left, E) configuration. Notice that the two SMILES are equivalent.
 
 About canonical SMILES
 ______________________
@@ -129,8 +142,7 @@ To handle this, people propose canonicalization schemes (rewrite the SMILES stri
 
 The critical part is actually the first one.
 For example, the algorithm developed by D. Weininger in 1989 (CANGEN) fails for some structures.
-
-
+Currently, there is no canonicalisation scheme available.
 
 Parsing SMILES with ``osmipy``
 ------------------------------

@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<gcp:chemistry xmlns:gcp="http://www.nongnu.org/gchempaint" creation="08/04/2019" revision="08/04/2019">
+  <generator>GChemPaint 0.14.17</generator>
+  <theme name="GChemPaint" bond-length="140" bond-angle="120" bond-dist="5" bond-width="1" arrow-length="200" arrow-head-a="6" arrow-head-b="8" arrow-head-c="4" arrow-dist="5" arrow-width="1" arrow-padding="16" hash-width="1" hash-dist="2" stereo-bond-width="5" zoom-factor="4" padding="2" stoichiometry-padding="1" object-padding="16" sign-padding="8" charge-sign-size="9" font-family="Bitstream Vera Sans" font-style="normal" font-weight="normal" font-variant="normal" font-stretch="normal" font-size="12288" text-font-family="Bitstream Vera Serif" text-font-style="normal" text-font-weight="normal" text-font-variant="normal" text-font-stretch="normal" text-font-size="12288"/>
+  <molecule id="m1">
+    <atom id="a1" element="C">
+      <position x="329.11328125" y="541.4027099609375"/>
+    </atom>
+    <atom id="a2" element="C">
+      <position x="469.11328125" y="541.4027099609375"/>
+    </atom>
+    <bond id="b1" order="2" begin="a1" end="a2"/>
+    <bond id="b3" order="1" begin="a1" end="a4"/>
+    <bond id="b4" order="1" begin="a2" end="a5"/>
+    <bond id="b5" order="1" begin="a2" end="a6"/>
+    <fragment id="f1">
+      <atom id="a4">Cl</atom>
+      <position x="259.11328125" y="420.15915343111607"/>
+    </fragment>
+    <fragment id="f2">
+      <atom id="a6">Br</atom>
+      <position x="539.11328125" y="662.64626649075888"/>
+    </fragment>
+    <fragment id="f6">
+      <atom id="a5">F</atom>
+      <position x="539.11328125" y="420.15915343111612"/>
+    </fragment>
+  </molecule>
+  <molecule id="m2">
+    <atom id="a7" element="C">
+      <position x="984.794921875" y="542.9041748046875"/>
+    </atom>
+    <atom id="a8" element="C">
+      <position x="1124.794921875" y="542.9041748046875"/>
+    </atom>
+    <bond id="b10" order="1" begin="a8" end="a12"/>
+    <bond id="b6" order="2" begin="a7" end="a8"/>
+    <bond id="b8" order="1" begin="a7" end="a11"/>
+    <bond id="b9" order="1" begin="a8" end="a10"/>
+    <fragment id="f3">
+      <atom id="a11">Cl</atom>
+      <position x="914.794921875" y="421.66061827486607"/>
+    </fragment>
+    <fragment id="f4">
+      <atom id="a12">F</atom>
+      <position x="1194.794921875" y="664.14773133450888"/>
+    </fragment>
+    <fragment id="f5">
+      <atom id="a10">Br</atom>
+      <position x="1194.794921875" y="421.66061827486612"/>
+    </fragment>
+  </molecule>
+  <text id="o1">
+    <position x="250.400390625" y="809.4013671875"/>
+    <font name="Bitstream Vera Serif, 12">Cl\C=C(/F)\Br</font>
+    <br/>
+    <font name="Bitstream Vera Serif, 12">C(/Cl)=C(\Br)/F</font>
+  </text>
+  <text id="o2">
+    <position x="869.578125" y="796.7689208984375"/>
+    <font name="Bitstream Vera Serif, 12">Cl\C=C(/Br)\F</font>
+    <br/>
+    <font name="Bitstream Vera Serif, 12">
+C(/Cl)=C(\F)/Br</font>
+  </text>
+</gcp:chemistry>

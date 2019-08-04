@@ -61,11 +61,17 @@ exclude_patterns = []
 #
 html_theme = 'alabaster'
 
-html_sidebars = {
-    '**': ['globaltoc.html', 'sourcelink.html', 'searchbox.html']
-}
-
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+html_theme_options = {
+    'description': osmipy.__doc__,
+    'show_relbar_bottom': True,
+    'github_button': True,
+    'github_repo': 'osmipy',
+    'github_user': 'pierre-24',
+    'travis_button': True,
+    'page_width': '1024px'
+}

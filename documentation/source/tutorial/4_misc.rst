@@ -26,13 +26,7 @@ So,
         branched_atom' := atom ring_id* ;
         chain' := branched_atom' ring_bond* branch* ((bond | DOT)? chain')? ;
 
-The relation between the AST objects is given by the following figure:
-
-.. figure:: ../images/smiles_classes.png
-    :align: center
-
-    Flowchart of the different AST objects.
-    Note that the ``parent`` attributes is set at the initialization of the object
+The relation between the AST objects is:
 
 A ``Chain`` is a succession of ``BranchedAtom``, but those can have ``Branch`` (other chains) or ``RingBond`` (loops in the graph).
 

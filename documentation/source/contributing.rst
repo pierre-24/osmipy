@@ -13,7 +13,7 @@ Design rules
 + The code is tested. You can launch the test series by using ``make test``.
   Every functionality should be provided with at least one unit test.
   Every script should be provided with at least one unit test.
-  You may need test files to do so, but try to make them small (say, don't use d-aug-cc-pVDZ while STO-3G could do the job).
+  You may need test files to do so, but try to make them small.
 + The package is documented. You can generate this documentation by using ``make doc``. Non-basic stuffs should be explained in this documentation. Don't forget to cite some articles or website if needed.
 + Before reimplementing something, please consider if there is no library that already exists to do the job.
 

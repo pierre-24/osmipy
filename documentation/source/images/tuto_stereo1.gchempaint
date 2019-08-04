@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<gcp:chemistry xmlns:gcp="http://www.nongnu.org/gchempaint" creation="08/04/2019" revision="08/04/2019">
+  <generator>GChemPaint 0.14.17</generator>
+  <theme name="GChemPaint" bond-length="140" bond-angle="120" bond-dist="5" bond-width="1" arrow-length="200" arrow-head-a="6" arrow-head-b="8" arrow-head-c="4" arrow-dist="5" arrow-width="1" arrow-padding="16" hash-width="1" hash-dist="2" stereo-bond-width="5" zoom-factor="4" padding="2" stoichiometry-padding="1" object-padding="16" sign-padding="8" charge-sign-size="9" font-family="Bitstream Vera Sans" font-style="normal" font-weight="normal" font-variant="normal" font-stretch="normal" font-size="12288" text-font-family="Bitstream Vera Serif" text-font-style="normal" text-font-weight="normal" text-font-variant="normal" text-font-stretch="normal" text-font-size="12288"/>
+  <molecule id="m1">
+    <atom id="a1" element="F">
+      <position x="593.0537109375" y="397.68377685546875"/>
+    </atom>
+    <atom id="a2" element="C">
+      <position x="593.0537109375" y="537.68377685546875"/>
+    </atom>
+    <atom id="a4" element="H">
+      <position x="471.81015440767862" y="607.68377685546875"/>
+    </atom>
+    <bond id="b1" order="1" begin="a1" end="a2"/>
+    <bond id="b2" order="1" begin="a2" end="a3" type="up"/>
+    <bond id="b3" order="1" begin="a2" end="a4"/>
+    <bond id="b4" order="1" begin="a5" end="a2" type="down"/>
+    <fragment id="f1">
+      <atom id="a3">Br</atom>
+      <position x="714.29726746732138" y="607.68377685546875"/>
+    </fragment>
+    <fragment id="f2">
+      <atom id="a5">Cl</atom>
+      <position x="733.0537109375" y="537.68377685546875"/>
+    </fragment>
+  </molecule>
+  <molecule id="m2">
+    <atom id="a10" element="Pt">
+      <position x="1511.0548475511077" y="515.0893324143891"/>
+    </atom>
+    <atom id="a11" element="Cl">
+      <position x="1362.7462538011077" y="406.80745634427819"/>
+    </atom>
+    <atom id="a12" element="Cl">
+      <position x="1343.8859582385853" y="586.4002455003266"/>
+    </atom>
+    <bond id="b10" order="1" begin="a10" end="a12" type="up"/>
+    <bond id="b11" order="1" begin="a10" end="a13" type="up"/>
+    <bond id="b8" order="1" begin="a6" end="a10" type="down"/>
+    <bond id="b9" order="1" begin="a11" end="a10" type="down"/>
+    <fragment id="f3"><atom id="a6">N</atom>H<stoichiometry value="3"/><position x="1648.2510806136302" y="405.2459486253266"/></fragment>
+    <fragment id="f4"><atom id="a13">N</atom>H<stoichiometry value="3"/><position x="1648.8087538011077" y="603.40153227378653"/></fragment>
+  </molecule>
+  <text id="o1">
+    <position x="407.3671875" y="773.7974853515625"/>
+    <font name="Bitstream Vera Serif, 12">F[C@H](Br)Cl</font>
+  </text>
+  <text id="o2">
+    <position x="407.271484375" y="867.863525390625"/>
+    <font name="Bitstream Vera Serif, 12">F[C@](Br)(Cl)[H]</font>
+  </text>
+  <text id="o3">
+    <position x="407.3330078125" y="955.505859375"/>
+    <font name="Bitstream Vera Serif, 12">F[C@@H](Cl)Br</font>
+  </text>
+  <text id="o4">
+    <position x="399.40478515625" y="1040.3094482421875"/>
+    <font name="Bitstream Vera Serif, 12">Br[C@H](Cl)F</font>
+  </text>
+  <text id="o5">
+    <position x="1234.66796875" y="766.95123291015625"/>
+    <font name="Bitstream Vera Serif, 12">Cl[Pt@SP1][NH3])([NH3])Cl</font>
+  </text>
+  <text id="o6">
+    <position x="1235.54296875" y="849.0146484375"/>
+    <font name="Bitstream Vera Serif, 12">Cl[Pt@SP2]([NH3])(Cl)[NH3]</font>
+  </text>
+  <text id="o7"><position x="1238.341796875" y="928.6861572265625"/><font name="Bitstream Vera Serif, 12">Cl[Pt@SP3]([NH3])(Cl)[NH3]</font></text>
+  <text id="o8">
+    <position x="1232.9755859375" y="1015.810791015625"/>
+    <font name="Bitstream Vera Serif, 12">[NH3][Pt@SP1]([NH3])(Cl)Cl</font>
+  </text>
+</gcp:chemistry>
